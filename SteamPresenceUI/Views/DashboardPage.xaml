@@ -17,7 +17,7 @@
             </Grid.RowDefinitions>
 
             <TextBlock Text="Dashboard" FontSize="28" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,16"/>
-            <ui:InfoBar x:Name="MandatoryLoginInfoBar" Title="MANDATORY LOGIN" Message="PLEASE LOG-IN TO STEAMCOMMUNITY.COM IN ORDER TO GATHER THE COOKIES." Severity="Warning" IsOpen="True" IsClosable="False" Margin="0,0,0,16"/>
+            <ui:InfoBar x:Name="MandatoryLoginInfoBar" Title="MANDATORY LOGIN" Message="PLEASE LOG-IN TO STEAMCOMMUNITY.COM IN ORDER TO GATHER THE COOKIES." Severity="Warning" IsOpen="True" IsClosable="True" Margin="0,0,0,16"/>
 
             <ui:CardControl Grid.Row="1" Margin="0,0,0,16" Icon="{ui:SymbolIcon Play24}">
                 <ui:CardControl.Header>

@@ -22,9 +22,9 @@ namespace SteamPresenceUI.Views
             _runner.StateUpdated += Runner_StateUpdated;
             
             if (_runner.HasSuccessfullyRun)
-                MandatoryLoginInfoBar.Visibility = Visibility.Collapsed;
+                MandatoryLoginInfoBar.IsOpen = false;
             else
-                _runner.SuccessfullyRan += (s, e) => Dispatcher.Invoke(() => MandatoryLoginInfoBar.Visibility = Visibility.Collapsed);
+                _runner.SuccessfullyRan += (s, e) => Dispatcher.Invoke(() => MandatoryLoginInfoBar.IsOpen = false);
             
             // Restore previous UI state explicitly
             LogTextBox.Text = _runner.LogHistory.ToString();

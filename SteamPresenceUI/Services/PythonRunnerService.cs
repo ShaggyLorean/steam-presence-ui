@@ -135,9 +135,13 @@ namespace SteamPresenceUI.Services
                     {
                         HasRpcFailed = false;
                         StateUpdated?.Invoke(this, e.Data);
+                        if (!HasSuccessfullyRun) MarkAsSuccessfullyRun();
                     }
                     else if (e.Data.Contains("Game detected:"))
+                    {
                         StateUpdated?.Invoke(this, e.Data);
+                        if (!HasSuccessfullyRun) MarkAsSuccessfullyRun();
+                    }
                     else if (e.Data.Contains("No game detected."))
                     {
                         CurrentGame = "";
