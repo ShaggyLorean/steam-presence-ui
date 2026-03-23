@@ -1,0 +1,145 @@
+<ui:FluentWindow x:Class="SteamPresenceUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:views="clr-namespace:SteamPresenceUI.Views"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
+        mc:Ignorable="d"
+        Title="Steam Presence" Height="600" Width="900"
+        Foreground="White"
+        WindowBackdropType="Mica"
+        ExtendsContentIntoTitleBar="True"
+        WindowStartupLocation="CenterScreen"
+        Closing="FluentWindow_Closing">
+
+    <Grid>
+        <tb:TaskbarIcon
+            x:Name="TrayIcon"
+            IconSource="/Assets/appicon.ico"
+            ToolTipText="Steam Presence UI"
+            TrayMouseDoubleClick="TrayIcon_TrayMouseDoubleClick">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Show" Click="MenuShow_Click" />
+                    <MenuItem Header="Exit" Click="MenuExit_Click" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+        
+        <ui:TitleBar x:Name="TitleBar" Title="Steam Presence Companion" Foreground="White">
+            <ui:TitleBar.Icon>
+                <ui:ImageIcon Source="/Assets/appicon.ico" />
+            </ui:TitleBar.Icon>
+        </ui:TitleBar>
+
+        <ui:NavigationView
+            x:Name="RootNavigation"
+            PaneDisplayMode="Left"
+            IsBackButtonVisible="Collapsed"
+            Margin="0,32,0,0">
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Content="Dashboard" Icon="{ui:SymbolIcon CheckmarkCircle24}" TargetPageType="{x:Type views:DashboardPage}" />
+                <ui:NavigationViewItem Content="Cookies" Icon="{ui:SymbolIcon Document24}" TargetPageType="{x:Type views:CookiesPage}" />
+                <ui:NavigationViewItem Content="Settings" Icon="{ui:SymbolIcon Settings24}" TargetPageType="{x:Type views:SettingsPage}" />
+            </ui:NavigationView.MenuItems>
+            <ui:NavigationView.ContentOverlay>
+                <Grid>
+                    <ui:SnackbarPresenter x:Name="SnackbarPresenter" />
+                </Grid>
+            </ui:NavigationView.ContentOverlay>
+        </ui:NavigationView>
+
+        <Grid x:Name="LoginOverlay" Visibility="Collapsed">
+            <Border Background="#CC000000" />
+            <Border VerticalAlignment="Center" HorizontalAlignment="Center" Width="550" MinHeight="400" Padding="32" Background="#1E1E1E" CornerRadius="15" BorderBrush="#FF007ACC" BorderThickness="2">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.8" Color="Black"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="RELEASE 23.03.2026-FIX" FontSize="10" Foreground="#444444" HorizontalAlignment="Right" Margin="0,-20,0,10"/>
+                    <TextBlock Grid.Row="1" Text="Initial Setup Required" FontSize="28" FontWeight="ExtraBold" Margin="0,0,0,16" Foreground="White" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Row="2" Text="Welcome to Steam Presence! We need your Steam ID64 to fetch your game activity." TextWrapping="Wrap" Margin="0,0,0,24" FontSize="15" Foreground="#CCCCCC" TextAlignment="Center"/>
+                    <ui:TextBox Grid.Row="3" x:Name="OverlaySteamIdInput" PlaceholderText="Enter 17-digit Steam ID64 (e.g. 76561198...)" Height="45" Margin="0,0,0,8" VerticalContentAlignment="Center" FontSize="16"/>
+                    <TextBlock Grid.Row="4" x:Name="OverlayErrorText" Foreground="#FF5E5E" Visibility="Collapsed" Text="Steam ID must be exactly 17 digits." Margin="0,0,0,16" FontWeight="SemiBold" TextAlignment="Center"/>
+                    <TextBlock Grid.Row="5" Text="MANDATORY: You must manually place a 'cookies.txt' file in the installation directory. We strongly recommend using the 'Get-cookies.txt' browser extension on steamcommunity.com" TextWrapping="Wrap" Margin="0,0,0,32" FontSize="13" Foreground="#FFD700" FontWeight="SemiBold" TextAlignment="Center" VerticalAlignment="Center"/>
+                    
+                    <Grid Grid.Row="6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ui:Button Grid.Column="0" Content="Open Install Folder" Icon="{ui:SymbolIcon Folder24}" Click="OverlayOpenFolder_Click" HorizontalAlignment="Stretch" Height="45" FontSize="14" />
+                        <ui:Button Grid.Column="2" Content="Save &amp; Continue" Appearance="Primary" Click="OverlayContinue_Click" HorizontalAlignment="Stretch" Height="45" FontSize="14" FontWeight="Bold" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="CloseOverlay" Visibility="Collapsed">
+            <Border Background="#CC000000" />
+            <Border VerticalAlignment="Center" HorizontalAlignment="Center" Width="450" Padding="32" Background="#1E1E1E" CornerRadius="15" BorderBrush="#FF007ACC" BorderThickness="2">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.8" Color="Black"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Text="Exit Steam Presence?" FontSize="24" FontWeight="Bold" Margin="0,0,0,16" Foreground="White" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Text="Would you like to keep the application running in the system tray or close it completely?" TextWrapping="Wrap" Margin="0,0,0,24" FontSize="14" Foreground="#CCCCCC" TextAlignment="Center"/>
+                    
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ui:Button Grid.Column="0" Content="Minimize" Icon="{ui:SymbolIcon Subtract24}" Click="CloseMinimize_Click" HorizontalAlignment="Stretch" Height="40" FontSize="12"/>
+                        <ui:Button Grid.Column="2" Content="Quit" Appearance="Secondary" Icon="{ui:SymbolIcon Power24}" Click="CloseQuit_Click" HorizontalAlignment="Stretch" Height="40" FontSize="12"/>
+                        <ui:Button Grid.Column="4" Content="Cancel" Appearance="Primary" Click="CloseCancel_Click" HorizontalAlignment="Stretch" Height="40" FontSize="12"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="CookieErrorOverlay" Visibility="Collapsed">
+            <Border Background="#CC000000" />
+            <Border VerticalAlignment="Center" HorizontalAlignment="Center" Width="450" Padding="32" Background="#1E1E1E" CornerRadius="15" BorderBrush="#FFFF4444" BorderThickness="2">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.8" Color="Black"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <ui:SymbolIcon Grid.Row="0" Symbol="Warning24" FontSize="48" Foreground="#FFFF4444" Margin="0,0,0,16" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Text="Steam Session Expired" FontSize="22" FontWeight="Bold" Margin="0,0,0,12" Foreground="White" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="2" Text="Your cookies.txt might have expired or is invalid. Please refresh your cookies from steamcommunity.com and update the file in the application folder." TextWrapping="Wrap" Margin="0,0,0,24" FontSize="14" Foreground="#CCCCCC" TextAlignment="Center"/>
+
+                    <ui:Button Grid.Row="3" Content="Got it / Close" Appearance="Primary" Click="CookieErrorClose_Click" HorizontalAlignment="Center" Padding="32,8"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>

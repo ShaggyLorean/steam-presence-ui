@@ -1,0 +1,217 @@
+using System;
+using System.IO;
+using System.Windows;
+using Wpf.Ui.Controls;
+using Wpf.Ui.Appearance;
+
+namespace SteamPresenceUI
+{
+    public partial class MainWindow : FluentWindow
+    {
+        public static MainWindow Current { get; private set; }
+
+        public MainWindow()
+        {
+            Wpf.Ui.Appearance.ApplicationThemeManager.Apply(Wpf.Ui.Appearance.ApplicationTheme.Dark);
+            InitializeComponent();
+            Current = this;
+
+            if (App.IsMinimizedStartup)
+            {
+                this.Hide();
+            }
+            
+            string basePath = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+            string tempPath = basePath;
+            while (!string.IsNullOrEmpty(tempPath))
+            {
+                if (File.Exists(Path.Combine(tempPath, "main.py"))) { basePath = tempPath; break; }
+                if (File.Exists(Path.Combine(tempPath, "config.json"))) { basePath = tempPath; break; }
+                string parent = Path.GetDirectoryName(tempPath);
+                if (parent == null || parent == tempPath) break;
+                tempPath = parent;
+            }
+            SteamPresenceUI.Services.PythonRunnerService.Shared = new SteamPresenceUI.Services.PythonRunnerService(basePath);
+            
+            bool hasSeenPrompt = false;
+            string userId = "";
+            try 
+            {
+                string cfgPath = System.IO.Path.Combine(basePath, "config.json");
+                if (System.IO.File.Exists(cfgPath)) 
+                {
+                    var node = System.Text.Json.Nodes.JsonNode.Parse(System.IO.File.ReadAllText(cfgPath));
+                    hasSeenPrompt = node?["HAS_SEEN_LOGIN_PROMPT"]?.GetValue<bool>() ?? false;
+                    
+                    var userIdsArray = node?["USER_IDS"]?.AsArray();
+                    if (userIdsArray != null && userIdsArray.Count > 0)
+                    {
+                        userId = userIdsArray[0]?.GetValue<string>() ?? "";
+                    }
+                    else if (node?["USER_IDS"] != null)
+                    {
+                        userId = node["USER_IDS"]?.GetValue<string>() ?? "";
+                    }
+
+                    if (node?["AUTO_START_ENGINE"]?.GetValue<bool>() == true && userId != "ENTER_YOURS" && !string.IsNullOrEmpty(userId)) 
+                    {
+                        SteamPresenceUI.Services.PythonRunnerService.Shared.Start();
+                    }
+                }
+            } 
+            catch { }
+
+            if (!hasSeenPrompt || string.IsNullOrEmpty(userId) || userId == "ENTER_YOURS")
+            {
+                LoginOverlay.Visibility = Visibility.Visible;
+                RootNavigation.Effect = new System.Windows.Media.Effects.BlurEffect { Radius = 20, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
+            }
+
+            RootNavigation.Loaded += (_, _) => RootNavigation.Navigate(typeof(Views.DashboardPage));
+        }
+
+        public void Navigate(Type pageType)
+        {
+            RootNavigation.Navigate(pageType);
+        }
+
+        public void ShowSnackbar(string title, string message, Wpf.Ui.Controls.ControlAppearance appearance = Wpf.Ui.Controls.ControlAppearance.Primary)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var snackbar = new Snackbar(SnackbarPresenter)
+                {
+                    Title = title,
+                    Content = message,
+                    Appearance = appearance,
+                    Timeout = TimeSpan.FromSeconds(5)
+                };
+                snackbar.Show();
+            });
+        }
+
+        private void FluentWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (CloseOverlay.Visibility == Visibility.Visible)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            e.Cancel = true;
+            CloseOverlay.Visibility = Visibility.Visible;
+            RootNavigation.Effect = new System.Windows.Media.Effects.BlurEffect { Radius = 20, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
+        }
+
+        private void CloseMinimize_Click(object sender, RoutedEventArgs e)
+        {
+            CloseOverlay.Visibility = Visibility.Collapsed;
+            RootNavigation.Effect = null;
+            this.Hide();
+        }
+
+        private void CloseQuit_Click(object sender, RoutedEventArgs e)
+        {
+            TrayIcon.Dispose();
+            SteamPresenceUI.Services.PythonRunnerService.Shared?.Stop();
+            Environment.Exit(0);
+        }
+
+        private void CloseCancel_Click(object sender, RoutedEventArgs e)
+        {
+            CloseOverlay.Visibility = Visibility.Collapsed;
+            RootNavigation.Effect = null;
+        }
+
+        public void ShowCookieError()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                CookieErrorOverlay.Visibility = Visibility.Visible;
+                RootNavigation.Effect = new System.Windows.Media.Effects.BlurEffect { Radius = 20, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
+            });
+        }
+
+        private void CookieErrorClose_Click(object sender, RoutedEventArgs e)
+        {
+            CookieErrorOverlay.Visibility = Visibility.Collapsed;
+            RootNavigation.Effect = null;
+        }
+
+        private void TrayIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+        {
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Activate();
+        }
+
+        private void MenuShow_Click(object sender, RoutedEventArgs e)
+        {
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Activate();
+        }
+
+        private void MenuExit_Click(object sender, RoutedEventArgs e)
+        {
+            TrayIcon.Dispose();
+            SteamPresenceUI.Services.PythonRunnerService.Shared?.Stop();
+            Environment.Exit(0);
+        }
+
+        private void OverlayOpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string basePath = System.IO.Path.GetDirectoryName(Environment.ProcessPath) ?? System.AppContext.BaseDirectory;
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", $"\"{basePath}\"") { UseShellExecute = true });
+            }
+            catch { }
+        }
+
+        private void OverlayContinue_Click(object sender, RoutedEventArgs e)
+        {
+            string id = OverlaySteamIdInput.Text.Trim();
+            if (id.Length != 17 || !long.TryParse(id, out _))
+            {
+                OverlayErrorText.Visibility = Visibility.Visible;
+                return;
+            }
+
+            OverlayErrorText.Visibility = Visibility.Collapsed;
+            LoginOverlay.Visibility = Visibility.Collapsed;
+            RootNavigation.Effect = null;
+            try
+            {
+                string basePath = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+                string tempPath = basePath;
+                while (!string.IsNullOrEmpty(tempPath))
+                {
+                    if (File.Exists(Path.Combine(tempPath, "config.json"))) { basePath = tempPath; break; }
+                    if (File.Exists(Path.Combine(tempPath, "main.py"))) { basePath = tempPath; break; }
+                    string parent = Path.GetDirectoryName(tempPath);
+                    if (parent == null || parent == tempPath) break;
+                    tempPath = parent;
+                }
+                string cfgPath = Path.Combine(basePath, "config.json");
+                System.Text.Json.Nodes.JsonNode node = new System.Text.Json.Nodes.JsonObject();
+                if (System.IO.File.Exists(cfgPath))
+                {
+                    var parsed = System.Text.Json.Nodes.JsonNode.Parse(System.IO.File.ReadAllText(cfgPath));
+                    if (parsed != null) node = parsed;
+                }
+                node["HAS_SEEN_LOGIN_PROMPT"] = true;
+                node["USER_IDS"] = new System.Text.Json.Nodes.JsonArray { id }; // Python parse_user_ids supports list/array
+                File.WriteAllText(cfgPath, node.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                
+                ShowSnackbar("Setup Complete", "Steam ID has been saved to " + cfgPath);
+                
+                if (node["AUTO_START_ENGINE"]?.GetValue<bool>() == true)
+                {
+                    SteamPresenceUI.Services.PythonRunnerService.Shared.Start();
+                }
+            }
+            catch { }
+        }
+    }
+}

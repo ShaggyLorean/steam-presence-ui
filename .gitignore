@@ -1,0 +1,30 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# App specific
+cookies.txt
+*.exe
+*.zip
+*.msi
+!Setup_SteamPresence.exe
+!SteamPresenceUI.exe
+# Wait, user wants to release these as assets, but they can be in the repo if it's a small binary? 
+# No, usually binaries go to releases. I'll ignore them for now.
+SteamPresenceUI.exe
+Setup_SteamPresence.exe
+
+# OS
+.DS_Store
+Thumbs.db

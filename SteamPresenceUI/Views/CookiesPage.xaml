@@ -1,0 +1,52 @@
+<Page x:Class="SteamPresenceUI.Views.CookiesPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Foreground="White"
+      Title="Cookies">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Manual Cookie Extraction" FontSize="28" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,16"/>
+        
+        <ui:InfoBar x:Name="CookieStatusAlert"
+            Grid.Row="1"
+            Title="Cookie Status"
+            Message="Checking..."
+            IsOpen="True"
+            Severity="Informational"
+            Margin="0,0,0,16"/>
+
+        <Border Grid.Row="2" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="Why are cookies needed?" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                <TextBlock Text="Steam cookies are required to fetch 'Rich Presence' data (like game state or lobby info) if you are not using a Public Steam Profile. Since automatic extraction is no longer supported, you must provide them manually." 
+                           Foreground="LightGray" TextWrapping="Wrap" Margin="0,0,0,16"/>
+                
+                <TextBlock Text="How to extract cookies manually:" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                <StackPanel Margin="8,0,0,0">
+                    <TextBlock Text="1. Install a browser extension like 'Get cookies.txt LOCALLY'." Foreground="White" Margin="0,0,0,4"/>
+                    <TextBlock Text="2. Log in to steamcommunity.com in your browser." Foreground="White" Margin="0,0,0,4"/>
+                    <TextBlock Text="3. Click the extension icon and export cookies for 'steamcommunity.com'." Foreground="White" Margin="0,0,0,4"/>
+                    <TextBlock Text="4. Save the file as 'cookies.txt' in the application folder." Foreground="White" Margin="0,0,0,4"/>
+                </StackPanel>
+
+                <ui:Button Content="Open Application Folder" Icon="{ui:SymbolIcon Folder24}" Margin="0,16,0,0" Click="OpenFolder_Click"/>
+            </StackPanel>
+        </Border>
+
+        <TextBlock Grid.Row="3" VerticalAlignment="Bottom" HorizontalAlignment="Right" x:Name="LastUpdateText" Text="Last updated: Unknown" Foreground="DarkGray" FontSize="11"/>
+    </Grid>
+</Page>
