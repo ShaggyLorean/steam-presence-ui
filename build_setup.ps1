@@ -17,6 +17,7 @@ Copy-Item "D:\steam-presence-1.12.3\main.py" -Destination $PayloadDir
 Copy-Item "D:\steam-presence-1.12.3\requirements.txt" -Destination $PayloadDir
 Copy-Item "D:\steam-presence-1.12.3\runningApps.py" -Destination $PayloadDir
 Copy-Item "D:\steam-presence-1.12.3\config.json" -Destination $PayloadDir
+Copy-Item "D:\steam-presence-1.12.3\SteamPresenceUI\Assets\appicon.ico" -Destination $PayloadDir  # Forced copy for shortcut cache fix
 Copy-Item -Path "D:\steam-presence-1.12.3\data" -Destination $PayloadDir -Recurse
 
 # 3. Creating payload.zip for embedding
