@@ -14,8 +14,11 @@ A modern, high-performance WPF interface for your Steam Discord Rich Presence. T
 
 1. Download the latest `Setup_SteamPresence.exe` from the [Releases](https://github.com/ShaggyLorean/steam-presence/releases) page.
 2. Run the installer and follow the instructions.
-3. Get your `cookies.txt` from steamcommunity.com (using extensions like "Get-cookies.txt") and place it in the installation folder.
-4. Add your Steam ID64 in the initial setup prompt.
+## How to get cookies.txt (MANDATORY)
+
+1. **Login**: Go to [steamcommunity.com](https://steamcommunity.com) and login to your account.
+2. **Install Extension**: Install the **[Get-cookies.txt LOCALLY](https://github.com/kairi003/Get-cookies.txt-LOCALLY)** extension (available for both Chrome and Firefox).
+3. **Export**: Go back to steamcommunity.com, click the extension, and click **Export**. Save this file as `cookies.txt` and place it directly into the application folder. The app will automatically detect it.
 
 ## Requirements
 
