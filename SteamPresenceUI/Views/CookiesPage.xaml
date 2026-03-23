@@ -37,30 +37,30 @@
                 
                 <TextBlock Text="How to extract cookies manually:" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
                 <StackPanel Margin="8,0,0,0">
-                    <ui:Label Margin="0,0,0,6">
+                    <Label Margin="0,0,0,6">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Person24" Margin="0,0,8,0" Foreground="#007ACC"/>
                             <TextBlock Text="Log in to steamcommunity.com in your browser." Foreground="White" VerticalAlignment="Center"/>
                         </StackPanel>
-                    </ui:Label>
-                    <ui:Label Margin="0,0,0,6">
+                    </Label>
+                    <Label Margin="0,0,0,6">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="PuzzleCube24" Margin="0,0,8,0" Foreground="#007ACC"/>
                             <TextBlock Text="Install 'Get-cookies.txt LOCALLY' extension (Chrome/Firefox)." Foreground="White" VerticalAlignment="Center"/>
                         </StackPanel>
-                    </ui:Label>
-                    <ui:Label Margin="0,0,0,6">
+                    </Label>
+                    <Label Margin="0,0,0,6">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="ArrowExport24" Margin="0,0,8,0" Foreground="#007ACC"/>
                             <TextBlock Text="Click the extension icon and click 'Export'." Foreground="White" VerticalAlignment="Center"/>
                         </StackPanel>
-                    </ui:Label>
-                    <ui:Label Margin="0,0,0,6">
+                    </Label>
+                    <Label Margin="0,0,0,6">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Save24" Margin="0,0,8,0" Foreground="#007ACC"/>
                             <TextBlock Text="Save as 'cookies.txt' and place it in the app folder." Foreground="White" VerticalAlignment="Center"/>
                         </StackPanel>
-                    </ui:Label>
+                    </Label>
                 </StackPanel>
 
                 <ui:Button Content="Open Application Folder" Icon="{ui:SymbolIcon Folder24}" Margin="0,16,0,0" Click="OpenFolder_Click"/>

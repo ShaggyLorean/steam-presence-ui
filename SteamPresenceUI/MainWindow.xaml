@@ -89,30 +89,30 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <ui:Label Grid.Row="0" Margin="0,0,0,6">
+                            <Label Grid.Row="0" Margin="0,0,0,6">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Person24" Margin="0,0,8,0" Foreground="#007ACC"/>
                                     <TextBlock Text="Log in to steamcommunity.com in your browser." Foreground="#CCCCCC" VerticalAlignment="Center"/>
                                 </StackPanel>
-                            </ui:Label>
-                            <ui:Label Grid.Row="1" Margin="0,0,0,6">
+                            </Label>
+                            <Label Grid.Row="1" Margin="0,0,0,6">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="PuzzleCube24" Margin="0,0,8,0" Foreground="#007ACC"/>
                                     <TextBlock Text="Install 'Get-cookies.txt LOCALLY' extension." Foreground="#CCCCCC" VerticalAlignment="Center"/>
                                 </StackPanel>
-                            </ui:Label>
-                            <ui:Label Grid.Row="2" Margin="0,0,0,6">
+                            </Label>
+                            <Label Grid.Row="2" Margin="0,0,0,6">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="ArrowExport24" Margin="0,0,8,0" Foreground="#007ACC"/>
                                     <TextBlock Text="Click the extension and click 'Export'." Foreground="#CCCCCC" VerticalAlignment="Center"/>
                                 </StackPanel>
-                            </ui:Label>
-                            <ui:Label Grid.Row="3" Margin="0,0,0,6">
+                            </Label>
+                            <Label Grid.Row="3" Margin="0,0,0,6">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Save24" Margin="0,0,8,0" Foreground="#007ACC"/>
                                     <TextBlock Text="Save as 'cookies.txt' in the application folder." Foreground="#CCCCCC" VerticalAlignment="Center"/>
                                 </StackPanel>
-                            </ui:Label>
+                            </Label>
                         </Grid>
                     </StackPanel>
                     
