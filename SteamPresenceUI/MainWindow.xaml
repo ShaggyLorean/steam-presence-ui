@@ -12,7 +12,8 @@
         WindowBackdropType="Mica"
         ExtendsContentIntoTitleBar="True"
         WindowStartupLocation="CenterScreen"
-        Closing="FluentWindow_Closing">
+        Closing="FluentWindow_Closing"
+        Icon="/Assets/appicon.png">
 
     <Grid>
         <tb:TaskbarIcon
@@ -30,7 +31,7 @@
         
         <ui:TitleBar x:Name="TitleBar" Title="Steam Presence Companion" Foreground="White">
             <ui:TitleBar.Icon>
-                <ui:ImageIcon Source="/Assets/appicon.ico" />
+                <ui:ImageIcon Source="/Assets/appicon.png" />
             </ui:TitleBar.Icon>
         </ui:TitleBar>
 
@@ -53,7 +54,7 @@
 
         <Grid x:Name="LoginOverlay" Visibility="Collapsed">
             <Border Background="#CC000000" />
-            <Border VerticalAlignment="Center" HorizontalAlignment="Center" Width="550" MinHeight="400" Padding="32" Background="#1E1E1E" CornerRadius="15" BorderBrush="#FF007ACC" BorderThickness="2">
+            <Border VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" Padding="32" Background="#1E1E1E" CornerRadius="15" BorderBrush="#FF007ACC" BorderThickness="2">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.8" Color="Black"/>
                 </Border.Effect>
@@ -64,18 +65,58 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="RELEASE 23.03.2026-FIX" FontSize="10" Foreground="#444444" HorizontalAlignment="Right" Margin="0,-20,0,10"/>
-                    <TextBlock Grid.Row="1" Text="Initial Setup Required" FontSize="28" FontWeight="ExtraBold" Margin="0,0,0,16" Foreground="White" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
-                    <TextBlock Grid.Row="2" Text="Welcome to Steam Presence! We need your Steam ID64 to fetch your game activity." TextWrapping="Wrap" Margin="0,0,0,24" FontSize="15" Foreground="#CCCCCC" TextAlignment="Center"/>
-                    <ui:TextBox Grid.Row="3" x:Name="OverlaySteamIdInput" PlaceholderText="Enter 17-digit Steam ID64 (e.g. 76561198...)" Height="45" Margin="0,0,0,8" VerticalContentAlignment="Center" FontSize="16"/>
-                    <TextBlock Grid.Row="4" x:Name="OverlayErrorText" Foreground="#FF5E5E" Visibility="Collapsed" Text="Steam ID must be exactly 17 digits." Margin="0,0,0,16" FontWeight="SemiBold" TextAlignment="Center"/>
-                    <TextBlock Grid.Row="5" Text="MANDATORY: You must manually place a 'cookies.txt' file in the installation directory. We strongly recommend using the 'Get-cookies.txt' browser extension on steamcommunity.com" TextWrapping="Wrap" Margin="0,0,0,32" FontSize="13" Foreground="#FFD700" FontWeight="SemiBold" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Text="Initial Setup Required" FontSize="32" FontWeight="ExtraBold" Margin="0,0,0,8" Foreground="White" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Text="Welcome! Let's get your Steam Presence up and running." FontSize="16" Foreground="#AAAAAA" Margin="0,0,0,24" HorizontalAlignment="Center"/>
+
+                    <!-- Step 1: Steam ID -->
+                    <StackPanel Grid.Row="2" Margin="0,0,0,24">
+                        <TextBlock Text="1. Your Steam ID64" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,8"/>
+                        <ui:TextBox x:Name="OverlaySteamIdInput" PlaceholderText="Enter 17-digit Steam ID (e.g. 76561198...)" Height="45" FontSize="16"/>
+                        <TextBlock x:Name="OverlayErrorText" Foreground="#FF5E5E" Visibility="Collapsed" Text="Steam ID must be exactly 17 digits." Margin="0,4,0,0" FontWeight="SemiBold"/>
+                    </StackPanel>
+
+                    <!-- Step 2: Cookies -->
+                    <StackPanel Grid.Row="3" Margin="0,0,0,32">
+                        <TextBlock Text="2. Required: cookies.txt (MANDATORY)" FontSize="18" FontWeight="Bold" Foreground="#FFD700" Margin="0,0,0,12"/>
+                        <Grid Margin="8,0,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ui:Label Grid.Row="0" Margin="0,0,0,6">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Person24" Margin="0,0,8,0" Foreground="#007ACC"/>
+                                    <TextBlock Text="Log in to steamcommunity.com in your browser." Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ui:Label>
+                            <ui:Label Grid.Row="1" Margin="0,0,0,6">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="PuzzleCube24" Margin="0,0,8,0" Foreground="#007ACC"/>
+                                    <TextBlock Text="Install 'Get-cookies.txt LOCALLY' extension." Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ui:Label>
+                            <ui:Label Grid.Row="2" Margin="0,0,0,6">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="ArrowExport24" Margin="0,0,8,0" Foreground="#007ACC"/>
+                                    <TextBlock Text="Click the extension and click 'Export'." Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ui:Label>
+                            <ui:Label Grid.Row="3" Margin="0,0,0,6">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Save24" Margin="0,0,8,0" Foreground="#007ACC"/>
+                                    <TextBlock Text="Save as 'cookies.txt' in the application folder." Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ui:Label>
+                        </Grid>
+                    </StackPanel>
                     
-                    <Grid Grid.Row="6">
+                    <Grid Grid.Row="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="16" />
