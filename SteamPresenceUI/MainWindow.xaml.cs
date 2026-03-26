@@ -27,10 +27,10 @@ namespace SteamPresenceUI
             InitializeComponent();
             _current = this;
 
-            // v1.1.2: Phantom Window State (Invisible but Active with valid HWND)
+            // v1.1.3: Safe Phantom State (Off-screen + Minimized, avoids property conflicts)
             if (App.IsMinimizedStartup || GetStartMinimized())
             {
-                ApplyPhantomState();
+                ApplySafePhantomState();
                 StartTrayHeartbeat();
             }
             else
@@ -55,31 +55,31 @@ namespace SteamPresenceUI
             RootNavigation.Loaded += (_, _) => RootNavigation.Navigate(typeof(Views.DashboardPage));
         }
 
-        private void ApplyPhantomState()
+        private void ApplySafePhantomState()
         {
-            // Instead of Hide(), we make the window invisible but technically "Shown" 
-            // to ensure the Win32 handle and Shell registration stay alive.
+            // Set position FAR off-screen FIRST before showing
+            this.Left = -30000;
+            this.Top = -30000;
+            this.Width = 1;
+            this.Height = 1;
+
+            // Use standard properties that don't trigger XamlParseException
             this.WindowState = WindowState.Minimized;
             this.ShowInTaskbar = false;
-            this.WindowStyle = WindowStyle.None;
-            this.AllowsTransparency = true;
-            this.Width = 1; // Smallest possible without breaking some OS logic
-            this.Height = 1;
-            this.Left = -10000; // Far off-screen
-            this.Top = -10000;
-            this.Opacity = 0;
-            this.Show(); // CRITICAL: Must be "Shown" to have a reliable Tray registration
+            this.Opacity = 0; 
+
+            // Show() creates the HWND and starts the message pump for the Tray Icon
+            this.Show(); 
         }
 
         private void StartTrayHeartbeat()
         {
-            // Force tray icon refresh every 5 seconds for the first 30 seconds
             _trayHeartbeatTimer = new DispatcherTimer();
             _trayHeartbeatTimer.Interval = TimeSpan.FromSeconds(5);
             _trayHeartbeatTimer.Tick += (s, e) =>
             {
                 _heartbeatCount++;
-                if (_heartbeatCount > 6) // Stop after 30s
+                if (_heartbeatCount > 6)
                 {
                     _trayHeartbeatTimer.Stop();
                     return;
@@ -91,7 +91,6 @@ namespace SteamPresenceUI
                         TrayIcon.Visibility = Visibility.Visible;
                     else
                     {
-                        // Toggle to force re-render/re-register
                         TrayIcon.Visibility = Visibility.Collapsed;
                         TrayIcon.Visibility = Visibility.Visible;
                     }
@@ -137,7 +136,7 @@ namespace SteamPresenceUI
             base.OnSourceInitialized(e);
             _taskbarCreatedMsg = RegisterWindowMessage("TaskbarCreated");
             HwndSource source = (HwndSource)HwndSource.FromVisual(this);
-            source.AddHook(HandleMessages);
+            if (source != null) source.AddHook(HandleMessages);
         }
 
         private IntPtr HandleMessages(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -159,7 +158,6 @@ namespace SteamPresenceUI
                 if (show)
                 {
                     this.Opacity = 1;
-                    this.WindowStyle = WindowStyle.SingleBorderWindow;
                     this.Width = 900;
                     this.Height = 600;
                     this.Left = (SystemParameters.PrimaryScreenWidth - 900) / 2;
