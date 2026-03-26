@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\appicon.ico</ApplicationIcon>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

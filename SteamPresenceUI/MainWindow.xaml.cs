@@ -8,19 +8,24 @@ namespace SteamPresenceUI
 {
     public partial class MainWindow : FluentWindow
     {
-        public static MainWindow Current { get; private set; }
+        private static MainWindow? _current;
+        public static MainWindow? Current => _current;
 
         public MainWindow()
         {
             Wpf.Ui.Appearance.ApplicationThemeManager.Apply(Wpf.Ui.Appearance.ApplicationTheme.Dark);
             InitializeComponent();
-            Current = this;
+            _current = this;
 
-            if (App.IsMinimizedStartup)
+            // Robust Tray-Only Startup Logic
+            if (App.IsMinimizedStartup || GetStartMinimized())
             {
+                this.WindowState = WindowState.Minimized;
+                this.ShowInTaskbar = false;
+                this.Visibility = Visibility.Hidden;
                 this.Hide();
             }
-            
+
             string basePath = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
             string tempPath = basePath;
             while (!string.IsNullOrEmpty(tempPath))
@@ -65,9 +70,49 @@ namespace SteamPresenceUI
             {
                 LoginOverlay.Visibility = Visibility.Visible;
                 RootNavigation.Effect = new System.Windows.Media.Effects.BlurEffect { Radius = 20, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
+                
+                ShowInTray(true);
             }
 
             RootNavigation.Loaded += (_, _) => RootNavigation.Navigate(typeof(Views.DashboardPage));
+        }
+
+        public void ShowInTray(bool show)
+        {
+            Dispatcher.Invoke(() => {
+                if (show)
+                {
+                    this.Show();
+                    this.Visibility = Visibility.Visible;
+                    this.ShowInTaskbar = true;
+                    this.WindowState = WindowState.Normal;
+                    this.Activate();
+                    this.Topmost = true;
+                    this.Topmost = false;
+                }
+                else
+                {
+                    this.ShowInTaskbar = false;
+                    this.Visibility = Visibility.Hidden;
+                    this.Hide();
+                }
+            });
+        }
+
+        private void TrayIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+        {
+            ShowInTray(true);
+        }
+
+        private void MenuShow_Click(object sender, RoutedEventArgs e)
+        {
+            ShowInTray(true);
+        }
+
+        private void MenuExit_Click(object sender, RoutedEventArgs e)
+        {
+            SteamPresenceUI.Services.PythonRunnerService.Shared?.Stop();
+            Environment.Exit(0);
         }
 
         public void Navigate(Type pageType)
@@ -107,12 +152,11 @@ namespace SteamPresenceUI
         {
             CloseOverlay.Visibility = Visibility.Collapsed;
             RootNavigation.Effect = null;
-            this.Hide();
+            ShowInTray(false);
         }
 
         private void CloseQuit_Click(object sender, RoutedEventArgs e)
         {
-            TrayIcon.Dispose();
             SteamPresenceUI.Services.PythonRunnerService.Shared?.Stop();
             Environment.Exit(0);
         }
@@ -136,27 +180,6 @@ namespace SteamPresenceUI
         {
             CookieErrorOverlay.Visibility = Visibility.Collapsed;
             RootNavigation.Effect = null;
-        }
-
-        private void TrayIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
-        {
-            this.Show();
-            this.WindowState = WindowState.Normal;
-            this.Activate();
-        }
-
-        private void MenuShow_Click(object sender, RoutedEventArgs e)
-        {
-            this.Show();
-            this.WindowState = WindowState.Normal;
-            this.Activate();
-        }
-
-        private void MenuExit_Click(object sender, RoutedEventArgs e)
-        {
-            TrayIcon.Dispose();
-            SteamPresenceUI.Services.PythonRunnerService.Shared?.Stop();
-            Environment.Exit(0);
         }
 
         private void OverlayOpenFolder_Click(object sender, RoutedEventArgs e)
@@ -201,7 +224,7 @@ namespace SteamPresenceUI
                     if (parsed != null) node = parsed;
                 }
                 node["HAS_SEEN_LOGIN_PROMPT"] = true;
-                node["USER_IDS"] = new System.Text.Json.Nodes.JsonArray { id }; // Python parse_user_ids supports list/array
+                node["USER_IDS"] = new System.Text.Json.Nodes.JsonArray { id };
                 File.WriteAllText(cfgPath, node.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
                 
                 ShowSnackbar("Setup Complete", "Steam ID has been saved to " + cfgPath);
@@ -212,6 +235,31 @@ namespace SteamPresenceUI
                 }
             }
             catch { }
+        }
+
+        private bool GetStartMinimized()
+        {
+            try
+            {
+                string basePath = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+                string tempPath = basePath;
+                while (!string.IsNullOrEmpty(tempPath))
+                {
+                    if (File.Exists(Path.Combine(tempPath, "config.json"))) { basePath = tempPath; break; }
+                    if (File.Exists(Path.Combine(tempPath, "main.py"))) { basePath = tempPath; break; }
+                    string parent = Path.GetDirectoryName(tempPath);
+                    if (parent == null || parent == tempPath) break;
+                    tempPath = parent;
+                }
+                string cfgPath = Path.Combine(basePath, "config.json");
+                if (File.Exists(cfgPath))
+                {
+                    var node = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(cfgPath));
+                    return node?["START_MINIMIZED"]?.GetValue<bool>() ?? false;
+                }
+            }
+            catch { }
+            return false;
         }
     }
 }

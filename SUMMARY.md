@@ -20,6 +20,8 @@ Steam Presence Companion is a modern Windows application designed to provide ric
 - **Icon Cache Bypass**: The installer extracts a dedicated `appicon.ico` and points the desktop shortcut to it explicitly, forcing Windows to show the new icon immediately.
 - **Process Cleanup**: The installer and UI both use robust logic (including `taskkill /F /T`) to ensure no "ghost" engine instances remain.
 - **Automated Sync**: The `build_setup.ps1` script handles the entire chain: Build UI -> Package Payload -> Compile Installer.
+- **Global Tray Icon (v1.1)**: The `TaskbarIcon` has been restored to `MainWindow.xaml` for maximum compatibility with the visual tree. A refined `ShowInTray` method and optimized window-hiding logic during startup now ensure the icon always registers with the Windows shell, even in the "Start with Windows" (stealth) mode.
+- **Installer Visibility (v1.1)**: The `pip install` process remains visible in a `cmd.exe` window to provide real-time progress feedback.
 
 ### Developer Notes
 - When updating the engine, ensure the `Payload/` folder is updated before running `build_setup.ps1`.
@@ -47,6 +49,8 @@ Steam Presence Companion, Steam oyunları (yerel olarak desteklemeyenler dahil) 
 - **İkon Önbellek Çözümü**: Installer, kısayol için özel bir `appicon.ico` dosyası çıkartır ve kısayolu direkt bu dosyaya yönlendirerek Windows'un eski ikonu göstermesini engeller.
 - **Süreç Temizliği**: Installer ve UI, "ghost" (hayalet) işlemlerin kalmaması için `taskkill /F /T` gibi sağlam yöntemlerle temizlik yapar.
 - **Otomatik Build**: `build_setup.ps1` betiği tüm zinciri yönetir: UI Build -> Payload Paketleme -> Installer Derleme.
+- **Global Tray İkon Yapısı (v1.1)**: `TaskbarIcon`, görsel ağaçla en iyi uyum için tekrar `MainWindow.xaml` içine taşındı. Geliştirilen `ShowInTray` metodu ve optimize edilen başlangıç mantığı sayesinde, uygulama Windows ile arka planda başlasa bile ikonun her zaman Windows kabuğuna (Shell) başarıyla kaydedilmesi sağlandı.
+- **Installer Görünürlüğü (v1.1)**: `pip install` işlemi, kullanıcının ilerlemeyi görebilmesi için görünür bir `cmd.exe` penceresinde çalışmaya devam eder.
 
 ### Geliştirici Notları
 - Motor (Python tarafı) güncellendiğinde, `build_setup.ps1` çalıştırılmadan önce `Payload/` klasörünün güncelliğinden emin olunmalıdır.

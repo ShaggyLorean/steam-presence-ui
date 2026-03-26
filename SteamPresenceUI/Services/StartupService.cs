@@ -32,7 +32,7 @@ namespace SteamPresenceUI.Services
             using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunKey, true);
             if (key == null) return;
 
-            string appPath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "";
+            string appPath = Environment.ProcessPath ?? "";
             string cmd = startMinimized ? $"\"{appPath}\" --minimized" : $"\"{appPath}\"";
             key.SetValue(AppName, cmd);
         }
