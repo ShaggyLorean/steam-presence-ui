@@ -59,6 +59,16 @@ namespace SteamPresenceUI.Views
             }
             
             LastUpdateText.Text = $"Last updated: {age}";
+
+            // Show maintenance notice ONLY if older than 3 days
+            if (_cookieService.GetCookieAgeDays() > 3)
+            {
+                MaintenanceNotice.IsOpen = true;
+            }
+            else
+            {
+                MaintenanceNotice.IsOpen = false;
+            }
         }
 
         private void OpenFolder_Click(object sender, RoutedEventArgs e)

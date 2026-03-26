@@ -19,21 +19,21 @@
 
         <TextBlock Text="Manual Cookie Extraction" FontSize="28" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,16"/>
         
-        <ui:InfoBar x:Name="CookieStatusAlert"
-            Grid.Row="1"
-            Title="Cookie Status"
-            Message="Checking..."
-            IsOpen="True"
-            Severity="Informational"
-            Margin="0,0,0,8"/>
+        <StackPanel Grid.Row="1" Margin="0,0,0,16">
+            <ui:InfoBar x:Name="CookieStatusAlert"
+                Title="Cookie Status"
+                Message="Checking..."
+                IsOpen="True"
+                Severity="Informational"
+                Margin="0,0,0,8"/>
 
-        <ui:InfoBar 
-            Grid.Row="1"
-            Title="Maintenance Notice"
-            Message="If your SteamRPC is not working, you may want to refresh your cookies.txt!"
-            IsOpen="True"
-            Severity="Warning"
-            Margin="0,90,0,16"/>
+            <ui:InfoBar x:Name="MaintenanceNotice"
+                Title="Maintenance Notice"
+                Message="If your SteamRPC is not working, you may want to refresh your cookies.txt!"
+                IsOpen="False"
+                Severity="Warning"
+                Margin="0,0,0,8"/>
+        </StackPanel>
 
         <Border Grid.Row="2" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"

@@ -31,8 +31,8 @@ namespace SteamPresenceUI.Services
             var lastWrite = File.GetLastWriteTime(_cookiePath);
             var age = DateTime.Now - lastWrite;
 
-            // Arbitrary agentic threshold: warn if > 5 days
-            if (age.TotalDays > 5)
+            // Warn if > 3 days (User requested)
+            if (age.TotalDays > 3)
             {
                 return ValidationState.Old;
             }
@@ -52,6 +52,12 @@ namespace SteamPresenceUI.Services
             if (age.TotalHours >= 1)
                 return $"{(int)age.TotalHours} hours ago";
             return $"{(int)age.TotalMinutes} mins ago";
+        }
+        public double GetCookieAgeDays()
+        {
+            if (!File.Exists(_cookiePath)) return 999;
+            var lastWrite = File.GetLastWriteTime(_cookiePath);
+            return (DateTime.Now - lastWrite).TotalDays;
         }
     }
 }

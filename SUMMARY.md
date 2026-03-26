@@ -21,8 +21,8 @@ Steam Presence Companion is a modern Windows application designed to provide ric
 - **Process Cleanup**: The installer and UI both use robust logic (including `taskkill /F /T`) to ensure no "ghost" engine instances remain.
 - **Automated Sync**: The `build_setup.ps1` script handles the entire chain: Build UI -> Package Payload -> Compile Installer.
 - **Global Tray Icon (v1.1.3)**: To resolve issues on Windows 11 Insider builds and prevent runtime crashes, the app now uses a **Safe Phantom Window** strategy (off-screen + minimized) and a **Tray Heartbeat** monitor.
-- **Maintenance Notice (v1.1.1)**: Added a proactive UI reminder in the Cookies page to refresh `cookies.txt` every few days for long-term stability.
-- **Installer Visibility (v1.1)**: The `pip install` process remains visible in a `cmd.exe` window to provide real-time progress feedback.
+- **Conditional Maintenance (v1.1.2)**: A smart "Refresh Cookies" reminder appears in the UI **only** if `cookies.txt` is older than 3 days, ensuring a clean interface for active sessions.
+- **Stacked Notifications**: Uses a `StackPanel` architecture for the Cookies page to prevent UI element overlapping.
 
 ### Developer Notes
 - When updating the engine, ensure the `Payload/` folder is updated before running `build_setup.ps1`.
@@ -51,8 +51,8 @@ Steam Presence Companion, Steam oyunları (yerel olarak desteklemeyenler dahil) 
 - **Süreç Temizliği**: Installer ve UI, "ghost" (hayalet) işlemlerin kalmaması için `taskkill /F /T` gibi sağlam yöntemlerle temizlik yapar.
 - **Otomatik Build**: `build_setup.ps1` betiği tüm zinciri yönetir: UI Build -> Payload Paketleme -> Installer Derleme.
 - **Global Tray İkon Yapısı (v1.1.3)**: Windows 11 Insider sürümlerindeki görünmezlik ve v1.1.2'deki 'XamlParseException' hatasını çözmek için **Safe Phantom Window** mimarisi eklendi.
-- **Bakım Notu (v1.1.1)**: Uzun süreli stabilite için Cookies sayfasına `cookies.txt` dosyasının birkaç günde bir yenilenmesi gerektiğini hatırlatan bir uyarı eklendi.
-- **Installer Görünürlüğü (v1.1)**: `pip install` işlemi, kullanıcının ilerlemeyi görebilmesi için görünür bir `cmd.exe` penceresinde çalışmaya devam eder.
+- **Akıllı Bakım Notu (v1.1.2)**: Cookies sayfasına eklenen hatırlatıcı artık sadece `cookies.txt` dosyası 3 günden eskiyse görünür, böylece aktif oturumlarda arayüz temiz kalır.
+- **UI Düzenlemesi**: Bildirimlerin üst üste binmesini önlemek için `StackPanel` tabanlı bir bildirim sistemi uygulandı.
 
 ### Geliştirici Notları
 - Motor (Python tarafı) güncellendiğinde, `build_setup.ps1` çalıştırılmadan önce `Payload/` klasörünün güncelliğinden emin olunmalıdır.
