@@ -18,6 +18,7 @@
     <Grid>
         <tb:TaskbarIcon
             x:Name="TrayIcon"
+            Visibility="Collapsed"
             IconSource="/Assets/appicon.ico"
             ToolTipText="Steam Presence UI"
             TrayMouseDoubleClick="TrayIcon_TrayMouseDoubleClick">

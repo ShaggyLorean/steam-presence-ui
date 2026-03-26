@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Windows;
+using System.Windows.Interop;
+using System.Runtime.InteropServices;
 using Wpf.Ui.Controls;
 using Wpf.Ui.Appearance;
 
@@ -10,6 +12,12 @@ namespace SteamPresenceUI
     {
         private static MainWindow? _current;
         public static MainWindow? Current => _current;
+
+        // Windows Message for Taskbar Creation
+        private uint _taskbarCreatedMsg;
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern uint RegisterWindowMessage(string lpString);
 
         public MainWindow()
         {
@@ -24,6 +32,19 @@ namespace SteamPresenceUI
                 this.ShowInTaskbar = false;
                 this.Visibility = Visibility.Hidden;
                 this.Hide();
+                
+                // Final fix: Add a safe delay before showing tray icon to ensure explorer is ready
+                System.Threading.Tasks.Task.Delay(3000).ContinueWith(_ =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        TrayIcon.Visibility = Visibility.Visible;
+                    });
+                });
+            }
+            else
+            {
+                TrayIcon.Visibility = Visibility.Visible;
             }
 
             string basePath = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
@@ -77,6 +98,34 @@ namespace SteamPresenceUI
             RootNavigation.Loaded += (_, _) => RootNavigation.Navigate(typeof(Views.DashboardPage));
         }
 
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            
+            // Register for "TaskbarCreated" message sent by Windows Explorer
+            _taskbarCreatedMsg = RegisterWindowMessage("TaskbarCreated");
+            
+            // Add hook to listen for the message
+            HwndSource source = (HwndSource)HwndSource.FromVisual(this);
+            source.AddHook(HandleMessages);
+        }
+
+        private IntPtr HandleMessages(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == _taskbarCreatedMsg)
+            {
+                // Taskbar was (re)created (e.g. explorer crash or startup completed)
+                // Re-register the tray icon
+                Dispatcher.Invoke(() =>
+                {
+                    // Toggling visibility forces H.NotifyIcon to re-add its icon to the tray
+                    TrayIcon.Visibility = Visibility.Collapsed;
+                    TrayIcon.Visibility = Visibility.Visible;
+                });
+            }
+            return IntPtr.Zero;
+        }
+
         public void ShowInTray(bool show)
         {
             Dispatcher.Invoke(() => {
@@ -89,6 +138,9 @@ namespace SteamPresenceUI
                     this.Activate();
                     this.Topmost = true;
                     this.Topmost = false;
+                    
+                    // Ensure icon is visible
+                    TrayIcon.Visibility = Visibility.Visible;
                 }
                 else
                 {
