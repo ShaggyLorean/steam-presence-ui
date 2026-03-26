@@ -20,7 +20,7 @@ Steam Presence Companion is a modern Windows application designed to provide ric
 - **Icon Cache Bypass**: The installer extracts a dedicated `appicon.ico` and points the desktop shortcut to it explicitly, forcing Windows to show the new icon immediately.
 - **Process Cleanup**: The installer and UI both use robust logic (including `taskkill /F /T`) to ensure no "ghost" engine instances remain.
 - **Automated Sync**: The `build_setup.ps1` script handles the entire chain: Build UI -> Package Payload -> Compile Installer.
-- **Global Tray Icon (v1.1.1)**: The `TaskbarIcon` has been restored to `MainWindow.xaml` with a specialized recovery hook. By listening for the `TaskbarCreated` Windows message and implementing a 3-second startup delay, the application now guarantees 100% tray icon visibility upon Windows boot and recovers automatically if Windows Explorer restarts.
+- **Global Tray Icon (v1.1.2)**: To resolve issues on Windows 11 Insider builds, the app now uses a **Phantom Window** strategy (invisible but active) and a **Tray Heartbeat** monitor. This guarantees a persistent Win32 handle for the tray area and forces periodic registration refreshes during the critical 30-second startup window.
 - **Installer Visibility (v1.1)**: The `pip install` process remains visible in a `cmd.exe` window to provide real-time progress feedback.
 
 ### Developer Notes
@@ -49,7 +49,7 @@ Steam Presence Companion, Steam oyunları (yerel olarak desteklemeyenler dahil) 
 - **İkon Önbellek Çözümü**: Installer, kısayol için özel bir `appicon.ico` dosyası çıkartır ve kısayolu direkt bu dosyaya yönlendirerek Windows'un eski ikonu göstermesini engeller.
 - **Süreç Temizliği**: Installer ve UI, "ghost" (hayalet) işlemlerin kalmaması için `taskkill /F /T` gibi sağlam yöntemlerle temizlik yapar.
 - **Otomatik Build**: `build_setup.ps1` betiği tüm zinciri yönetir: UI Build -> Payload Paketleme -> Installer Derleme.
-- **Global Tray İkon Yapısı (v1.1.1)**: `TaskbarIcon` mimarisi, `TaskbarCreated` recovery hook'u ve 3 saniyelik başlangıç gecikmesi ile güçlendirildi. Bu sayede uygulama Windows açılışında %100 görünürlük sağlar ve Explorer çökmesi/yeniden başlatılması durumunda ikonu otomatik olarak geri getirir.
+- **Global Tray İkon Yapısı (v1.1.2)**: Windows 11 Insider sürümlerindeki görünmezlik sorununu çözmek için **Phantom Window** mimarisi (aktif ama görünmez pencere) ve **Tray Heartbeat** (ikon kalp atışı) sistemi eklendi. Bu sayede uygulamanın Windows tray ile bağlantısı kopmaz ve başlangıçtaki kritik 30 saniye boyunca ikon kaydı sürekli tazelenir.
 - **Installer Görünürlüğü (v1.1)**: `pip install` işlemi, kullanıcının ilerlemeyi görebilmesi için görünür bir `cmd.exe` penceresinde çalışmaya devam eder.
 
 ### Geliştirici Notları

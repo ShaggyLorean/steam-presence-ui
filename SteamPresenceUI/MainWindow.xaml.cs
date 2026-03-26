@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Threading;
 using System.Runtime.InteropServices;
 using Wpf.Ui.Controls;
 using Wpf.Ui.Appearance;
@@ -13,8 +14,9 @@ namespace SteamPresenceUI
         private static MainWindow? _current;
         public static MainWindow? Current => _current;
 
-        // Windows Message for Taskbar Creation
         private uint _taskbarCreatedMsg;
+        private DispatcherTimer? _trayHeartbeatTimer;
+        private int _heartbeatCount = 0;
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern uint RegisterWindowMessage(string lpString);
@@ -25,22 +27,11 @@ namespace SteamPresenceUI
             InitializeComponent();
             _current = this;
 
-            // Robust Tray-Only Startup Logic
+            // v1.1.2: Phantom Window State (Invisible but Active with valid HWND)
             if (App.IsMinimizedStartup || GetStartMinimized())
             {
-                this.WindowState = WindowState.Minimized;
-                this.ShowInTaskbar = false;
-                this.Visibility = Visibility.Hidden;
-                this.Hide();
-                
-                // Final fix: Add a safe delay before showing tray icon to ensure explorer is ready
-                System.Threading.Tasks.Task.Delay(3000).ContinueWith(_ =>
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        TrayIcon.Visibility = Visibility.Visible;
-                    });
-                });
+                ApplyPhantomState();
+                StartTrayHeartbeat();
             }
             else
             {
@@ -59,6 +50,58 @@ namespace SteamPresenceUI
             }
             SteamPresenceUI.Services.PythonRunnerService.Shared = new SteamPresenceUI.Services.PythonRunnerService(basePath);
             
+            InitializeStartupLogic(basePath);
+
+            RootNavigation.Loaded += (_, _) => RootNavigation.Navigate(typeof(Views.DashboardPage));
+        }
+
+        private void ApplyPhantomState()
+        {
+            // Instead of Hide(), we make the window invisible but technically "Shown" 
+            // to ensure the Win32 handle and Shell registration stay alive.
+            this.WindowState = WindowState.Minimized;
+            this.ShowInTaskbar = false;
+            this.WindowStyle = WindowStyle.None;
+            this.AllowsTransparency = true;
+            this.Width = 1; // Smallest possible without breaking some OS logic
+            this.Height = 1;
+            this.Left = -10000; // Far off-screen
+            this.Top = -10000;
+            this.Opacity = 0;
+            this.Show(); // CRITICAL: Must be "Shown" to have a reliable Tray registration
+        }
+
+        private void StartTrayHeartbeat()
+        {
+            // Force tray icon refresh every 5 seconds for the first 30 seconds
+            _trayHeartbeatTimer = new DispatcherTimer();
+            _trayHeartbeatTimer.Interval = TimeSpan.FromSeconds(5);
+            _trayHeartbeatTimer.Tick += (s, e) =>
+            {
+                _heartbeatCount++;
+                if (_heartbeatCount > 6) // Stop after 30s
+                {
+                    _trayHeartbeatTimer.Stop();
+                    return;
+                }
+                
+                Dispatcher.Invoke(() =>
+                {
+                    if (TrayIcon.Visibility != Visibility.Visible)
+                        TrayIcon.Visibility = Visibility.Visible;
+                    else
+                    {
+                        // Toggle to force re-render/re-register
+                        TrayIcon.Visibility = Visibility.Collapsed;
+                        TrayIcon.Visibility = Visibility.Visible;
+                    }
+                });
+            };
+            _trayHeartbeatTimer.Start();
+        }
+
+        private void InitializeStartupLogic(string basePath)
+        {
             bool hasSeenPrompt = false;
             string userId = "";
             try 
@@ -71,18 +114,12 @@ namespace SteamPresenceUI
                     
                     var userIdsArray = node?["USER_IDS"]?.AsArray();
                     if (userIdsArray != null && userIdsArray.Count > 0)
-                    {
                         userId = userIdsArray[0]?.GetValue<string>() ?? "";
-                    }
                     else if (node?["USER_IDS"] != null)
-                    {
                         userId = node["USER_IDS"]?.GetValue<string>() ?? "";
-                    }
 
                     if (node?["AUTO_START_ENGINE"]?.GetValue<bool>() == true && userId != "ENTER_YOURS" && !string.IsNullOrEmpty(userId)) 
-                    {
                         SteamPresenceUI.Services.PythonRunnerService.Shared.Start();
-                    }
                 }
             } 
             catch { }
@@ -91,21 +128,14 @@ namespace SteamPresenceUI
             {
                 LoginOverlay.Visibility = Visibility.Visible;
                 RootNavigation.Effect = new System.Windows.Media.Effects.BlurEffect { Radius = 20, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
-                
                 ShowInTray(true);
             }
-
-            RootNavigation.Loaded += (_, _) => RootNavigation.Navigate(typeof(Views.DashboardPage));
         }
 
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            
-            // Register for "TaskbarCreated" message sent by Windows Explorer
             _taskbarCreatedMsg = RegisterWindowMessage("TaskbarCreated");
-            
-            // Add hook to listen for the message
             HwndSource source = (HwndSource)HwndSource.FromVisual(this);
             source.AddHook(HandleMessages);
         }
@@ -114,11 +144,8 @@ namespace SteamPresenceUI
         {
             if (msg == _taskbarCreatedMsg)
             {
-                // Taskbar was (re)created (e.g. explorer crash or startup completed)
-                // Re-register the tray icon
                 Dispatcher.Invoke(() =>
                 {
-                    // Toggling visibility forces H.NotifyIcon to re-add its icon to the tray
                     TrayIcon.Visibility = Visibility.Collapsed;
                     TrayIcon.Visibility = Visibility.Visible;
                 });
@@ -131,6 +158,12 @@ namespace SteamPresenceUI
             Dispatcher.Invoke(() => {
                 if (show)
                 {
+                    this.Opacity = 1;
+                    this.WindowStyle = WindowStyle.SingleBorderWindow;
+                    this.Width = 900;
+                    this.Height = 600;
+                    this.Left = (SystemParameters.PrimaryScreenWidth - 900) / 2;
+                    this.Top = (SystemParameters.PrimaryScreenHeight - 600) / 2;
                     this.Show();
                     this.Visibility = Visibility.Visible;
                     this.ShowInTaskbar = true;
@@ -138,15 +171,15 @@ namespace SteamPresenceUI
                     this.Activate();
                     this.Topmost = true;
                     this.Topmost = false;
-                    
-                    // Ensure icon is visible
                     TrayIcon.Visibility = Visibility.Visible;
+                    
+                    if (_trayHeartbeatTimer != null) _trayHeartbeatTimer.Stop();
                 }
                 else
                 {
                     this.ShowInTaskbar = false;
                     this.Visibility = Visibility.Hidden;
-                    this.Hide();
+                    this.Hide(); 
                 }
             });
         }
@@ -282,9 +315,7 @@ namespace SteamPresenceUI
                 ShowSnackbar("Setup Complete", "Steam ID has been saved to " + cfgPath);
                 
                 if (node["AUTO_START_ENGINE"]?.GetValue<bool>() == true)
-                {
                     SteamPresenceUI.Services.PythonRunnerService.Shared.Start();
-                }
             }
             catch { }
         }
