@@ -21,7 +21,7 @@ Steam Presence Companion is a modern Windows application designed to provide ric
 - **Process Cleanup**: The installer and UI both use robust logic (including `taskkill /F /T`) to ensure no "ghost" engine instances remain.
 - **Automated Sync**: The `build_setup.ps1` script handles the entire chain: Build UI -> Package Payload -> Compile Installer.
 - **Global Tray Icon (v1.1.3)**: To resolve issues on Windows 11 Insider builds and prevent runtime crashes, the app now uses a **Safe Phantom Window** strategy (off-screen + minimized) and a **Tray Heartbeat** monitor.
-- **Logging Discipline (v1.1.4)**: Silent failure for supplemental Rich Presence checks to eliminate console spam during gameplay.
+- **Maintenance Notice (v1.1.1)**: Added a proactive UI reminder in the Cookies page to refresh `cookies.txt` every few days for long-term stability.
 - **Installer Visibility (v1.1)**: The `pip install` process remains visible in a `cmd.exe` window to provide real-time progress feedback.
 
 ### Developer Notes
@@ -51,7 +51,7 @@ Steam Presence Companion, Steam oyunları (yerel olarak desteklemeyenler dahil) 
 - **Süreç Temizliği**: Installer ve UI, "ghost" (hayalet) işlemlerin kalmaması için `taskkill /F /T` gibi sağlam yöntemlerle temizlik yapar.
 - **Otomatik Build**: `build_setup.ps1` betiği tüm zinciri yönetir: UI Build -> Payload Paketleme -> Installer Derleme.
 - **Global Tray İkon Yapısı (v1.1.3)**: Windows 11 Insider sürümlerindeki görünmezlik ve v1.1.2'deki 'XamlParseException' hatasını çözmek için **Safe Phantom Window** mimarisi eklendi.
-- **Log Disiplini (v1.1.4)**: Oyun esnasındaki gereksiz 'DEBUG RP' spamlerini önlemek için ek Rich Presence kontrolleri sessiz hale getirildi.
+- **Bakım Notu (v1.1.1)**: Uzun süreli stabilite için Cookies sayfasına `cookies.txt` dosyasının birkaç günde bir yenilenmesi gerektiğini hatırlatan bir uyarı eklendi.
 - **Installer Görünürlüğü (v1.1)**: `pip install` işlemi, kullanıcının ilerlemeyi görebilmesi için görünür bir `cmd.exe` penceresinde çalışmaya devam eder.
 
 ### Geliştirici Notları
