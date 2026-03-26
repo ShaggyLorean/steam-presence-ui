@@ -132,7 +132,6 @@ def steam_get_rich_presence_en(steamid64: str) -> str:
     try:
         r = requests.get(url, headers=headers, cookies=cookies, timeout=10)
         if r.status_code != 200:
-            log(f"DEBUG RP: {url} failed with status {r.status_code}")
             return ""
         data = r.json()
         in_game = data.get("in_game")
@@ -141,12 +140,11 @@ def steam_get_rich_presence_en(steamid64: str) -> str:
             if isinstance(rp, str) and rp.strip():
                 return rp.strip()
             else:
-                log(f"DEBUG RP: No rich_presence found in in_game: {in_game}")
+                pass
         else:
-            log(f"DEBUG RP: Not in_game or in_game is not a dict.")
+            pass
         return ""
-    except Exception as e:
-        log(f"DEBUG RP: Exception {e}")
+    except Exception:
         return ""
 
 
