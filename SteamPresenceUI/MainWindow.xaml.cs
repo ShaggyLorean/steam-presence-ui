@@ -57,19 +57,12 @@ namespace SteamPresenceUI
 
         private void ApplySafePhantomState()
         {
-            // Set position FAR off-screen FIRST before showing
-            this.Left = -30000;
-            this.Top = -30000;
-            this.Width = 1;
-            this.Height = 1;
-
-            // Use standard properties that don't trigger XamlParseException
-            this.WindowState = WindowState.Minimized;
-            this.ShowInTaskbar = false;
+            // v1.1.3: Total Invisibility (Static XAML is the main defense)
+            this.Left = -32000;
+            this.Top = -32000;
             this.Opacity = 0; 
-
-            // Show() creates the HWND and starts the message pump for the Tray Icon
-            this.Show(); 
+            
+            this.Show(); // Creates HWND
         }
 
         private void StartTrayHeartbeat()
@@ -157,12 +150,17 @@ namespace SteamPresenceUI
             Dispatcher.Invoke(() => {
                 if (show)
                 {
+                    // v1.1.3: Dynamic Restoration of UI from "Phantom" state
+                    this.WindowStyle = WindowStyle.SingleBorderWindow;
+                    this.Background = System.Windows.Media.Brushes.Transparent;
+                    this.WindowBackdropType = WindowBackdropType.Mica;
+
                     this.Opacity = 1;
                     this.Width = 900;
                     this.Height = 600;
                     this.Left = (SystemParameters.PrimaryScreenWidth - 900) / 2;
                     this.Top = (SystemParameters.PrimaryScreenHeight - 600) / 2;
-                    this.Show();
+                    
                     this.Visibility = Visibility.Visible;
                     this.ShowInTaskbar = true;
                     this.WindowState = WindowState.Normal;

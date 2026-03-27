@@ -20,8 +20,8 @@ Steam Presence Companion is a modern Windows application designed to provide ric
 - **Icon Cache Bypass**: The installer extracts a dedicated `appicon.ico` and points the desktop shortcut to it explicitly, forcing Windows to show the new icon immediately.
 - **Process Cleanup**: The installer and UI both use robust logic (including `taskkill /F /T`) to ensure no "ghost" engine instances remain.
 - **Automated Sync**: The `build_setup.ps1` script handles the entire chain: Build UI -> Package Payload -> Compile Installer.
-- **Global Tray Icon (v1.1.3)**: To resolve issues on Windows 11 Insider builds and prevent runtime crashes, the app now uses a **Safe Phantom Window** strategy (off-screen + minimized) and a **Tray Heartbeat** monitor.
-- **Conditional Maintenance (v1.1.2)**: A smart "Refresh Cookies" reminder appears in the UI **only** if `cookies.txt` is older than 3 days, ensuring a clean interface for active sessions.
+- **Total Stealth Startup (v1.1.3)**: Resolved the "dark box" issue by statically configuring the `MainWindow` as a 0x0 transparent phantom in XAML. Full UI and Mica effects are only applied upon manual activation.
+- **Conditional Maintenance (v1.1.2)**: A smart "Refresh Cookies" reminder appears in the UI **only** if `cookies.txt` is older than 3 days.
 - **Stacked Notifications**: Uses a `StackPanel` architecture for the Cookies page to prevent UI element overlapping.
 
 ### Developer Notes
@@ -50,8 +50,8 @@ Steam Presence Companion, Steam oyunları (yerel olarak desteklemeyenler dahil) 
 - **İkon Önbellek Çözümü**: Installer, kısayol için özel bir `appicon.ico` dosyası çıkartır ve kısayolu direkt bu dosyaya yönlendirerek Windows'un eski ikonu göstermesini engeller.
 - **Süreç Temizliği**: Installer ve UI, "ghost" (hayalet) işlemlerin kalmaması için `taskkill /F /T` gibi sağlam yöntemlerle temizlik yapar.
 - **Otomatik Build**: `build_setup.ps1` betiği tüm zinciri yönetir: UI Build -> Payload Paketleme -> Installer Derleme.
-- **Global Tray İkon Yapısı (v1.1.3)**: Windows 11 Insider sürümlerindeki görünmezlik ve v1.1.2'deki 'XamlParseException' hatasını çözmek için **Safe Phantom Window** mimarisi eklendi.
-- **Akıllı Bakım Notu (v1.1.2)**: Cookies sayfasına eklenen hatırlatıcı artık sadece `cookies.txt` dosyası 3 günden eskiyse görünür, böylece aktif oturumlarda arayüz temiz kalır.
+- **Sessiz Başlangıç (v1.1.3)**: Autostart sırasında görünen "siyah kutu" sorunu, `MainWindow`'un XAML seviyesinde 0x0 boyutunda ve şeffaf olarak yapılandırılmasıyla tamamen çözüldü. Mica efektleri ve ana pencere sadece manuel olarak açıldığında yüklenir.
+- **Akıllı Bakım Notu (v1.1.2)**: Cookies sayfasına eklenen hatırlatıcı artık sadece `cookies.txt` dosyası 3 günden eskiyse görünür.
 - **UI Düzenlemesi**: Bildirimlerin üst üste binmesini önlemek için `StackPanel` tabanlı bir bildirim sistemi uygulandı.
 
 ### Geliştirici Notları

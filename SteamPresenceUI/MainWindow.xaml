@@ -7,11 +7,14 @@
         xmlns:views="clr-namespace:SteamPresenceUI.Views"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
-        Title="Steam Presence" Height="600" Width="900"
+        Title="Steam Presence" Height="0" Width="0"
         Foreground="White"
-        WindowBackdropType="Mica"
+        WindowBackdropType="None"
+        WindowStyle="None"
+        Background="Transparent"
+        ShowInTaskbar="False"
         ExtendsContentIntoTitleBar="True"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="Manual"
         Closing="FluentWindow_Closing"
         Icon="/Assets/appicon.png">
 
