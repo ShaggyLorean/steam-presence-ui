@@ -171,7 +171,7 @@ namespace SteamPresenceUI.Services
             foreach (Cookie cookie in steamCookies)
             {
                 string domain = cookie.Domain.StartsWith(".") ? cookie.Domain : "." + cookie.Domain;
-                string flag = cookie.Domain.StartsWith(".") ? "TRUE" : "FALSE";
+                string flag = domain.StartsWith(".") ? "TRUE" : "FALSE";
                 string secure = cookie.Secure ? "TRUE" : "FALSE";
                 long expires = cookie.Expires == DateTime.MinValue
                     ? 0
@@ -185,7 +185,7 @@ namespace SteamPresenceUI.Services
             foreach (Cookie cookie in storeCookies)
             {
                 string domain = cookie.Domain.StartsWith(".") ? cookie.Domain : "." + cookie.Domain;
-                string flag = cookie.Domain.StartsWith(".") ? "TRUE" : "FALSE";
+                string flag = domain.StartsWith(".") ? "TRUE" : "FALSE";
                 string secure = cookie.Secure ? "TRUE" : "FALSE";
                 long expires = cookie.Expires == DateTime.MinValue
                     ? 0
