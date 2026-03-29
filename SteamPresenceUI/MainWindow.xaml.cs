@@ -17,9 +17,20 @@ namespace SteamPresenceUI
         private uint _taskbarCreatedMsg;
         private DispatcherTimer? _trayHeartbeatTimer;
         private int _heartbeatCount = 0;
+        private SteamPresenceUI.Services.CookieKeepAliveService? _keepAlive;
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern uint RegisterWindowMessage(string lpString);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        private const int GWL_EXSTYLE    = -20;
+        private const int WS_EX_TOOLWINDOW = 0x00000080;
+        private const int WS_EX_APPWINDOW  = 0x00040000;
 
         public MainWindow()
         {
@@ -50,6 +61,10 @@ namespace SteamPresenceUI
             }
             SteamPresenceUI.Services.PythonRunnerService.Shared = new SteamPresenceUI.Services.PythonRunnerService(basePath);
             
+            // Start Cookie Keep-Alive service
+            _keepAlive = new SteamPresenceUI.Services.CookieKeepAliveService(basePath);
+            _keepAlive.Start();
+
             InitializeStartupLogic(basePath);
 
             RootNavigation.Loaded += (_, _) => RootNavigation.Navigate(typeof(Views.DashboardPage));
@@ -57,12 +72,42 @@ namespace SteamPresenceUI
 
         private void ApplySafePhantomState()
         {
-            // v1.1.3: Total Invisibility (Static XAML is the main defense)
             this.Left = -32000;
             this.Top = -32000;
-            this.Opacity = 0; 
-            
-            this.Show(); // Creates HWND
+            this.Opacity = 0;
+
+            this.Show(); // Creates HWND — required for tray icon message pump
+
+            // Win32: Hide from Alt+Tab by setting WS_EX_TOOLWINDOW
+            HideFromAltTab();
+        }
+
+        /// <summary>
+        /// Applies WS_EX_TOOLWINDOW to the native HWND, removing the window
+        /// from the Alt+Tab switcher and the taskbar at the OS level.
+        /// </summary>
+        private void HideFromAltTab()
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero) return;
+            int exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+            exStyle |=  WS_EX_TOOLWINDOW;   // hide from Alt+Tab
+            exStyle &= ~WS_EX_APPWINDOW;    // remove "app window" flag
+            SetWindowLong(hwnd, GWL_EXSTYLE, exStyle);
+        }
+
+        /// <summary>
+        /// Restores WS_EX_APPWINDOW so the window appears normally in the
+        /// taskbar and Alt+Tab when the user explicitly opens the UI.
+        /// </summary>
+        private void ShowInAltTab()
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero) return;
+            int exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+            exStyle &= ~WS_EX_TOOLWINDOW;   // remove tool-window flag
+            exStyle |=  WS_EX_APPWINDOW;    // restore app-window flag
+            SetWindowLong(hwnd, GWL_EXSTYLE, exStyle);
         }
 
         private void StartTrayHeartbeat()
@@ -150,7 +195,9 @@ namespace SteamPresenceUI
             Dispatcher.Invoke(() => {
                 if (show)
                 {
-                    // v1.1.3: Dynamic Restoration of UI from "Phantom" state
+                    // Restore full UI from phantom / tray state
+                    ShowInAltTab();  // Win32: make visible in Alt+Tab again
+
                     this.WindowStyle = WindowStyle.SingleBorderWindow;
                     this.Background = System.Windows.Media.Brushes.Transparent;
                     this.WindowBackdropType = WindowBackdropType.Mica;
@@ -160,7 +207,7 @@ namespace SteamPresenceUI
                     this.Height = 600;
                     this.Left = (SystemParameters.PrimaryScreenWidth - 900) / 2;
                     this.Top = (SystemParameters.PrimaryScreenHeight - 600) / 2;
-                    
+
                     this.Visibility = Visibility.Visible;
                     this.ShowInTaskbar = true;
                     this.WindowState = WindowState.Normal;
@@ -168,14 +215,17 @@ namespace SteamPresenceUI
                     this.Topmost = true;
                     this.Topmost = false;
                     TrayIcon.Visibility = Visibility.Visible;
-                    
+
                     if (_trayHeartbeatTimer != null) _trayHeartbeatTimer.Stop();
                 }
                 else
                 {
+                    // Hide to tray — also hide from Alt+Tab
+                    HideFromAltTab();  // Win32: remove from Alt+Tab
+
                     this.ShowInTaskbar = false;
                     this.Visibility = Visibility.Hidden;
-                    this.Hide(); 
+                    this.Hide();
                 }
             });
         }

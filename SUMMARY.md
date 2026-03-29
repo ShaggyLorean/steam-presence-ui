@@ -47,12 +47,13 @@ Steam Presence Companion, Steam oyunları (yerel olarak desteklemeyenler dahil) 
 
 ### Önemli Teknik Uygulamalar
 - **İkon İşleme**: Görev çubuğu ve Masaüstünde kusursuz şeffaflık için `gen_ico.ps1` ile üretilmiş 32-bit ARGB çok boyutlu (16x16 - 256x256) ICO dosyası kullanır.
-- **İkon Önbellek Çözümü**: Installer, kısayol için özel bir `appicon.ico` dosyası çıkartır ve kısayolu direkt bu dosyaya yönlendirerek Windows'un eski ikonu göstermesini engeller.
-- **Süreç Temizliği**: Installer ve UI, "ghost" (hayalet) işlemlerin kalmaması için `taskkill /F /T` gibi sağlam yöntemlerle temizlik yapar.
-- **Otomatik Build**: `build_setup.ps1` betiği tüm zinciri yönetir: UI Build -> Payload Paketleme -> Installer Derleme.
-- **Sessiz Başlangıç (v1.1.3)**: Autostart sırasında görünen "siyah kutu" sorunu, `MainWindow`'un XAML seviyesinde 0x0 boyutunda ve şeffaf olarak yapılandırılmasıyla tamamen çözüldü. Mica efektleri ve ana pencere sadece manuel olarak açıldığında yüklenir.
-- **Akıllı Bakım Notu (v1.1.2)**: Cookies sayfasına eklenen hatırlatıcı artık sadece `cookies.txt` dosyası 3 günden eskiyse görünür.
-- **UI Düzenlemesi**: Bildirimlerin üst üste binmesini önlemek için `StackPanel` tabanlı bir bildirim sistemi uygulandı.
+### Temel Geliştirmeler
+- **Uygulama İçi Steam Girişi (v1.2.0)**: Microsoft Edge WebView2 entegre edildi. Artık tarayıcı eklentilerine ihtiyaç yok, kullanıcı direkt uygulama içinde Steam'e giriş yapabilir ve cookie'ler otomatik çekilir.
+- **Sonsuz Cookie Ömrü (v1.2.0)**: Arka planda çalışan `CookieKeepAliveService`, Steam oturumunu taze tutmak için periyodik istekler atarak cookie'lerin süresinin dolmasını sonsuza kadar engeller.
+- **Alt+Tab Görünmezliği (v1.2.0)**: Win32 native API (`WS_EX_TOOLWINDOW`) kullanılarak, küçültülmüş uygulamanın Windows Alt+Tab menüsünde bıraktığı kalıntı (ghost window) tamamen silindi.
+- **Basitleştirilmiş Kurulum (v1.2.0)**: Uygulamanın ilk açılış ekranı (Setup) sadeleştirildi ve kafa karıştırıcı "Cookies" zorunluluğu başlangıç ekranından kaldırıldı.
+- **Sağlam Kurulum Aracı (v1.2.0)**: Kurulum sırasında Python modüllerinin yüklenmesi için `python -m pip install` komutuna geçildi, böylece Path sorunlarından kaynaklı modül kilitlenmelerinin önüne geçildi.
+- **Sessiz Başlangıç (v1.1.3)**: Autostart sırasında görünen "siyah kutu" sorunu, `MainWindow`'un XAML seviyesinde 0x0 boyutunda ve şeffaf olarak yapılandırılmasıyla tamamen çözüldü.
 
 ### Geliştirici Notları
 - Motor (Python tarafı) güncellendiğinde, `build_setup.ps1` çalıştırılmadan önce `Payload/` klasörünün güncelliğinden emin olunmalıdır.

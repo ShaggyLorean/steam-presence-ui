@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
+      d:DesignHeight="550" d:DesignWidth="800"
       Foreground="White"
       Title="Cookies">
 
@@ -14,11 +14,13 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Manual Cookie Extraction" FontSize="28" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,16"/>
+        <TextBlock Text="Cookie Management" FontSize="28" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,16"/>
         
+        <!-- Status Alerts -->
         <StackPanel Grid.Row="1" Margin="0,0,0,16">
             <ui:InfoBar x:Name="CookieStatusAlert"
                 Title="Cookie Status"
@@ -35,46 +37,70 @@
                 Margin="0,0,0,8"/>
         </StackPanel>
 
-        <Border Grid.Row="2" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+        <!-- Primary Action: In-App Login -->
+        <Border Grid.Row="2" Background="#1A3A5C" 
+                BorderBrush="#007ACC" BorderThickness="1.5" 
+                CornerRadius="10" Padding="20" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="🔑  Automatic Login (Recommended)" FontWeight="Bold" FontSize="17" Foreground="White" Margin="0,0,0,6"/>
+                    <TextBlock Text="Log in to Steam directly inside the app. Cookies will be extracted automatically — no browser extensions needed. Keep-Alive will keep them fresh forever." 
+                               Foreground="#BBDDFF" TextWrapping="Wrap" FontSize="13"/>
+                </StackPanel>
+                <ui:Button Grid.Column="1" Content="Login to Steam" 
+                           Appearance="Primary" Icon="{ui:SymbolIcon Globe24}"
+                           Click="LoginToSteam_Click"
+                           VerticalAlignment="Center" Padding="20,10" FontSize="14" FontWeight="Bold"
+                           Margin="16,0,0,0"/>
+            </Grid>
+        </Border>
+
+        <!-- Secondary: Manual Extraction (collapsed accordion style) -->
+        <Border Grid.Row="3" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,16">
             <StackPanel>
-                <TextBlock Text="Why are cookies needed?" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
-                <TextBlock Text="Steam cookies are required to fetch 'Rich Presence' data (like game state or lobby info) if you are not using a Public Steam Profile. Since automatic extraction is no longer supported, you must provide them manually." 
-                           Foreground="LightGray" TextWrapping="Wrap" Margin="0,0,0,16"/>
-                
-                <TextBlock Text="How to extract cookies manually:" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                <TextBlock Text="📋  Manual Cookie Extraction (Alternative)" FontWeight="Bold" FontSize="15" Margin="0,0,0,8" Foreground="#AAAAAA"/>
+                <TextBlock Text="If automatic login doesn't work, you can manually export cookies using a browser extension:" 
+                           Foreground="#888888" TextWrapping="Wrap" Margin="0,0,0,12" FontSize="12"/>
                 <StackPanel Margin="8,0,0,0">
-                    <Label Margin="0,0,0,6">
+                    <Label Margin="0,0,0,4">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Person24" Margin="0,0,8,0" Foreground="#007ACC"/>
-                            <TextBlock Text="Log in to steamcommunity.com in your browser." Foreground="White" VerticalAlignment="Center"/>
+                            <ui:SymbolIcon Symbol="Person24" Margin="0,0,8,0" Foreground="#555"/>
+                            <TextBlock Text="Log in to steamcommunity.com in your browser." Foreground="#999" VerticalAlignment="Center" FontSize="12"/>
                         </StackPanel>
                     </Label>
-                    <Label Margin="0,0,0,6">
+                    <Label Margin="0,0,0,4">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="PuzzleCube24" Margin="0,0,8,0" Foreground="#007ACC"/>
-                            <TextBlock Text="Install 'Get-cookies.txt LOCALLY' extension (Chrome/Firefox)." Foreground="White" VerticalAlignment="Center"/>
+                            <ui:SymbolIcon Symbol="PuzzleCube24" Margin="0,0,8,0" Foreground="#555"/>
+                            <TextBlock Text="Install 'Get-cookies.txt LOCALLY' extension." Foreground="#999" VerticalAlignment="Center" FontSize="12"/>
                         </StackPanel>
                     </Label>
-                    <Label Margin="0,0,0,6">
+                    <Label Margin="0,0,0,4">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="ArrowExport24" Margin="0,0,8,0" Foreground="#007ACC"/>
-                            <TextBlock Text="Click the extension icon and click 'Export'." Foreground="White" VerticalAlignment="Center"/>
+                            <ui:SymbolIcon Symbol="ArrowExport24" Margin="0,0,8,0" Foreground="#555"/>
+                            <TextBlock Text="Click the extension and click 'Export'." Foreground="#999" VerticalAlignment="Center" FontSize="12"/>
                         </StackPanel>
                     </Label>
-                    <Label Margin="0,0,0,6">
+                    <Label Margin="0,0,0,4">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Save24" Margin="0,0,8,0" Foreground="#007ACC"/>
-                            <TextBlock Text="Save as 'cookies.txt' and place it in the app folder." Foreground="White" VerticalAlignment="Center"/>
+                            <ui:SymbolIcon Symbol="Save24" Margin="0,0,8,0" Foreground="#555"/>
+                            <TextBlock Text="Save as 'cookies.txt' in the app folder." Foreground="#999" VerticalAlignment="Center" FontSize="12"/>
                         </StackPanel>
                     </Label>
                 </StackPanel>
 
-                <ui:Button Content="Open Application Folder" Icon="{ui:SymbolIcon Folder24}" Margin="0,16,0,0" Click="OpenFolder_Click"/>
+                <ui:Button Content="Open Application Folder" Icon="{ui:SymbolIcon Folder24}" 
+                           Margin="0,12,0,0" Click="OpenFolder_Click" Appearance="Secondary"/>
             </StackPanel>
         </Border>
 
-        <TextBlock Grid.Row="3" VerticalAlignment="Bottom" HorizontalAlignment="Right" x:Name="LastUpdateText" Text="Last updated: Unknown" Foreground="DarkGray" FontSize="11"/>
+        <TextBlock Grid.Row="4" VerticalAlignment="Bottom" HorizontalAlignment="Right" 
+                   x:Name="LastUpdateText" Text="Last updated: Unknown" 
+                   Foreground="DarkGray" FontSize="11"/>
     </Grid>
 </Page>

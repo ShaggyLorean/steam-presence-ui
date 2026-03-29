@@ -49,7 +49,7 @@ try
     // 1. Visible Dependency Installation
     Console.WriteLine("Installing Python dependencies. A new window will open to show progress...");
     try {
-        var startInfo = new ProcessStartInfo("cmd.exe", "/c title Steam Presence Dependencies && pip install -r requirements.txt") {
+        var startInfo = new ProcessStartInfo("cmd.exe", "/c title Steam Presence Dependencies && python -m pip install -r requirements.txt") {
             WorkingDirectory = installPath,
             CreateNoWindow = false,
             UseShellExecute = true

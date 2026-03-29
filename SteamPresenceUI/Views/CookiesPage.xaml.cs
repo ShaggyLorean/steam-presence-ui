@@ -41,33 +41,51 @@ namespace SteamPresenceUI.Views
                 CookieStatusAlert.Visibility = Visibility.Visible;
                 CookieStatusAlert.Severity = InfoBarSeverity.Error;
                 CookieStatusAlert.Title = "Cookies Missing";
-                CookieStatusAlert.Message = "The 'cookies.txt' file was not found. Please follow the instructions below to add it.";
+                CookieStatusAlert.Message = "No cookies.txt found. Use 'Login to Steam' to set up automatically.";
             }
             else if (state == CookieValidationService.ValidationState.Old)
             {
                 CookieStatusAlert.Visibility = Visibility.Visible;
                 CookieStatusAlert.Severity = InfoBarSeverity.Warning;
                 CookieStatusAlert.Title = "Cookies Old";
-                CookieStatusAlert.Message = $"Your cookies were last updated {age}. If presence data is missing, consider refreshing them.";
+                CookieStatusAlert.Message = $"Your cookies were last updated {age}. Click 'Login to Steam' to refresh.";
             }
             else
             {
                 CookieStatusAlert.Visibility = Visibility.Visible;
                 CookieStatusAlert.Severity = InfoBarSeverity.Success;
                 CookieStatusAlert.Title = "Cookies Active";
-                CookieStatusAlert.Message = $"Cookies are loaded and healthy (Last updated: {age}).";
+                CookieStatusAlert.Message = $"Cookies are loaded and healthy (Last updated: {age}). Keep-Alive is maintaining them.";
             }
             
             LastUpdateText.Text = $"Last updated: {age}";
 
             // Show maintenance notice ONLY if older than 3 days
-            if (_cookieService.GetCookieAgeDays() > 3)
+            MaintenanceNotice.IsOpen = _cookieService.GetCookieAgeDays() > 3;
+        }
+
+        private void LoginToSteam_Click(object sender, RoutedEventArgs e)
+        {
+            try
             {
-                MaintenanceNotice.IsOpen = true;
+                var loginWindow = new SteamLoginWindow(_basePath);
+                loginWindow.Owner = Window.GetWindow(this);
+                var result = loginWindow.ShowDialog();
+
+                if (loginWindow.CookiesExtracted)
+                {
+                    // Refresh UI status
+                    CheckCookieHealth();
+                    MainWindow.Current?.ShowSnackbar("Cookies Saved", 
+                        "Steam cookies have been extracted and saved successfully! Keep-Alive will maintain them.",
+                        Wpf.Ui.Controls.ControlAppearance.Success);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                MaintenanceNotice.IsOpen = false;
+                MainWindow.Current?.ShowSnackbar("Login Error", 
+                    $"Could not open Steam login: {ex.Message}",
+                    Wpf.Ui.Controls.ControlAppearance.Danger);
             }
         }
 

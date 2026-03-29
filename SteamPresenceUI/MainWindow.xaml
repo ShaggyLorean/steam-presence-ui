@@ -78,46 +78,9 @@
 
                     <!-- Step 1: Steam ID -->
                     <StackPanel Grid.Row="2" Margin="0,0,0,24">
-                        <TextBlock Text="1. Your Steam ID64" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock Text="Your Steam ID64" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,8"/>
                         <ui:TextBox x:Name="OverlaySteamIdInput" PlaceholderText="Enter 17-digit Steam ID (e.g. 76561198...)" Height="45" FontSize="16"/>
                         <TextBlock x:Name="OverlayErrorText" Foreground="#FF5E5E" Visibility="Collapsed" Text="Steam ID must be exactly 17 digits." Margin="0,4,0,0" FontWeight="SemiBold"/>
-                    </StackPanel>
-
-                    <!-- Step 2: Cookies -->
-                    <StackPanel Grid.Row="3" Margin="0,0,0,32">
-                        <TextBlock Text="2. Required: cookies.txt (MANDATORY)" FontSize="18" FontWeight="Bold" Foreground="#FFD700" Margin="0,0,0,12"/>
-                        <Grid Margin="8,0,0,0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Label Grid.Row="0" Margin="0,0,0,6">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="Person24" Margin="0,0,8,0" Foreground="#007ACC"/>
-                                    <TextBlock Text="Log in to steamcommunity.com in your browser." Foreground="#CCCCCC" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Label>
-                            <Label Grid.Row="1" Margin="0,0,0,6">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="PuzzleCube24" Margin="0,0,8,0" Foreground="#007ACC"/>
-                                    <TextBlock Text="Install 'Get-cookies.txt LOCALLY' extension." Foreground="#CCCCCC" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Label>
-                            <Label Grid.Row="2" Margin="0,0,0,6">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="ArrowExport24" Margin="0,0,8,0" Foreground="#007ACC"/>
-                                    <TextBlock Text="Click the extension and click 'Export'." Foreground="#CCCCCC" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Label>
-                            <Label Grid.Row="3" Margin="0,0,0,6">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="Save24" Margin="0,0,8,0" Foreground="#007ACC"/>
-                                    <TextBlock Text="Save as 'cookies.txt' in the application folder." Foreground="#CCCCCC" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Label>
-                        </Grid>
                     </StackPanel>
                     
                     <Grid Grid.Row="4">
