@@ -130,7 +130,8 @@ namespace SteamPresenceUI.Views
                     sb.AppendLine($"{domain}\t{flag}\t{path}\t{secure}\t{expires}\t{cookie.Name}\t{cookie.Value}");
                 }
 
-                File.WriteAllText(_cookiePath, sb.ToString(), Encoding.UTF8);
+                // Python's MozillaCookieJar fails if there is a UTF-8 BOM, so we must write without BOM.
+                File.WriteAllText(_cookiePath, sb.ToString(), new UTF8Encoding(false));
                 CookiesExtracted = true;
 
                 StatusText.Text = $"✅ {uniqueCookies.Count} cookies saved to cookies.txt!";

@@ -161,7 +161,8 @@ namespace SteamPresenceUI.Services
         /// </summary>
         private void SaveNetscapeCookies(CookieContainer container)
         {
-            using var writer = new StreamWriter(_cookiePath, false, System.Text.Encoding.UTF8);
+            // Python's MozillaCookieJar fails if there is a UTF-8 BOM, so we must write without BOM.
+            using var writer = new StreamWriter(_cookiePath, false, new System.Text.UTF8Encoding(false));
             writer.WriteLine("# Netscape HTTP Cookie File");
             writer.WriteLine("# Auto-refreshed by Steam Presence Companion");
             writer.WriteLine();
