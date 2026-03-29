@@ -114,7 +114,7 @@ def steam_get_rich_presence_en(steamid64: str) -> str:
     except Exception:
         return ""
 
-    url = f"https://steamcommunity.com/miniprofile/{mini_id3}/json?l=english"
+    url = f"https://steamcommunity.com/miniprofile/{mini_id3}/json?l=english&_={int(time()*1000)}"
 
     headers = {
         "User-Agent": (
@@ -272,15 +272,17 @@ def main():
         # Update activity
         if rpc:
             try:
-                payload = {
-                    "details": None,
-                    "state": state or None,
-                    "start": start_ts,
-                }
-                rpc.update(**payload)
-                if state and state != prev_state:
-                    log(f"State updated: {state}")
-                prev_state = state
+                # Only update Discord if state changed, prevents spam/rate-limit dropping presence
+                if state != prev_state:
+                    payload = {
+                        "details": None,
+                        "state": state or None,
+                        "start": start_ts,
+                    }
+                    rpc.update(**payload)
+                    if state and state != prev_state:
+                        log(f"State updated: {state}")
+                    prev_state = state
             except Exception as e:
                 error(f"Discord update failed: {e}")
                 try:
