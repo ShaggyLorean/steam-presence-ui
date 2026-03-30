@@ -189,7 +189,7 @@ def main():
     log("Manual cookie extraction mode active. Reading from cookies.txt (if present).")
 
     prev_game = ""
-    prev_state = ""
+    prev_state = None
     rpc = None
     start_ts = 0
 
@@ -226,7 +226,7 @@ def main():
                         pass
 
             prev_game = ""
-            prev_state = ""
+            prev_state = None
             start_ts = 0
             sleep(1) # <--- INSTANT UDPATES (1 second)
             continue
@@ -267,7 +267,7 @@ def main():
                 continue
 
             prev_game = current_game
-            prev_state = ""
+            prev_state = None
 
         # Update activity
         if rpc:

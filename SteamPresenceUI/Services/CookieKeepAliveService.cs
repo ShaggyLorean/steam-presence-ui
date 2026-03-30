@@ -16,7 +16,7 @@ namespace SteamPresenceUI.Services
     {
         private Timer? _timer;
         private readonly string _cookiePath;
-        private readonly TimeSpan _interval = TimeSpan.FromHours(10);
+        private readonly TimeSpan _interval = TimeSpan.FromHours(1);
         private bool _disposed;
 
         // Endpoints that return Set-Cookie headers and refresh session tokens
@@ -42,7 +42,7 @@ namespace SteamPresenceUI.Services
         {
             _timer?.Dispose();
             _timer = new Timer(async _ => await RefreshAsync(), null, TimeSpan.FromMinutes(5), _interval);
-            Log("Cookie Keep-Alive armed (interval: 10h).");
+            Log("Cookie Keep-Alive armed (interval: 1h).");
         }
 
         public void Stop()
