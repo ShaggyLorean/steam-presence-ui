@@ -1,59 +1,75 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
+using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
+using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Wpf;
 
 namespace SteamPresenceUI.Services
 {
     /// <summary>
-    /// Background service that periodically pings steamcommunity.com using
-    /// the existing cookies.txt to keep the session alive and prevent expiration.
-    /// Refreshed cookies from the response are written back to cookies.txt.
+    /// Background service that instantiates an off-screen WebView2 periodically.
+    /// By visiting steamcommunity.com with WebView2, the actual Steam Javascript executes,
+    /// triggering their OAuth/JWT token refresh naturally. The fresh cookies are then
+    /// dumped to cookies.txt, bypassing the severe session expiration limits.
+    /// WebView2 is aggressively disposed after each run to maintain ~0MB idle RAM.
     /// </summary>
-    public sealed class CookieKeepAliveService : IDisposable
+    public sealed class CookieKeepAliveService : Window, IDisposable
     {
-        private Timer? _timer;
+        private DispatcherTimer? _timer;
         private readonly string _cookiePath;
-        private readonly TimeSpan _interval = TimeSpan.FromHours(1);
+        private readonly string _userDataFolder;
+        private WebView2? _webView;
         private bool _disposed;
-
-        // Endpoints that return Set-Cookie headers and refresh session tokens
-        private static readonly string[] RefreshEndpoints =
-        {
-            "https://steamcommunity.com/",
-            "https://steamcommunity.com/chat/clientjstoken"
-        };
-
-        private static readonly string UserAgent =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-            "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+        private bool _isNavigating;
 
         public event EventHandler<string>? LogMessage;
 
         public CookieKeepAliveService(string basePath)
         {
             _cookiePath = Path.Combine(basePath, "cookies.txt");
+            _userDataFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "SteamPresence", "WebView2Profile");
+
+            // Setup a phantom window properties
+            this.Width = 0;
+            this.Height = 0;
+            this.WindowStyle = WindowStyle.None;
+            this.ShowInTaskbar = false;
+            this.ShowActivated = false;
+            this.Visibility = Visibility.Collapsed;
+            this.Left = -32000;
+            this.Top = -32000;
+            this.Opacity = 0;
+
+            // HWND must be created
+            this.Show();
+            this.Hide();
         }
 
-        /// <summary>Start the periodic keep-alive timer.</summary>
         public void Start()
         {
-            _timer?.Dispose();
-            _timer = new Timer(async _ => await RefreshAsync(), null, TimeSpan.FromMinutes(5), _interval);
-            Log("Cookie Keep-Alive armed (interval: 1h).");
+            _timer?.Stop();
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromHours(1);
+            _timer.Tick += async (s, e) => await RefreshAsync();
+            _timer.Start();
+            
+            // Fire first refresh rapidly after startup
+            Task.Delay(TimeSpan.FromMinutes(2)).ContinueWith(_ => Dispatcher.InvokeAsync(RefreshAsync));
+
+            Log("Smart WebView2 Keep-Alive armed (interval: 1h).");
         }
 
         public void Stop()
         {
-            _timer?.Dispose();
-            _timer = null;
+            _timer?.Stop();
         }
 
-        /// <summary>
-        /// Manually trigger a refresh right now (e.g., after WebView2 login).
-        /// </summary>
         public async Task RefreshNowAsync()
         {
             await RefreshAsync();
@@ -61,137 +77,100 @@ namespace SteamPresenceUI.Services
 
         private async Task RefreshAsync()
         {
-            if (!File.Exists(_cookiePath))
-            {
-                Log("Keep-Alive: No cookies.txt found, skipping.");
-                return;
-            }
+            if (_isNavigating || !File.Exists(_cookiePath)) return;
+            _isNavigating = true;
 
             try
             {
-                var cookieContainer = new CookieContainer();
-                LoadNetscapeCookies(cookieContainer);
+                Directory.CreateDirectory(_userDataFolder);
 
-                var handler = new HttpClientHandler
+                _webView = new WebView2();
+                this.Content = _webView;
+
+                var env = await CoreWebView2Environment.CreateAsync(userDataFolder: _userDataFolder);
+                await _webView.EnsureCoreWebView2Async(env);
+
+                EventHandler<CoreWebView2NavigationCompletedEventArgs>? completedHandler = null;
+                
+                completedHandler = async (s, e) =>
                 {
-                    CookieContainer = cookieContainer,
-                    UseCookies = true,
-                    AllowAutoRedirect = true
+                    if (_webView == null) return;
+                    _webView.CoreWebView2.NavigationCompleted -= completedHandler;
+                    
+                    // Wait enough time for Steam's React logic to negotiate new JWT tokens via localstorage
+                    await Task.Delay(8000);
+                    
+                    try 
+                    {
+                        var steamCookies = await _webView.CoreWebView2.CookieManager.GetCookiesAsync("https://steamcommunity.com");
+                        var storeCookies = await _webView.CoreWebView2.CookieManager.GetCookiesAsync("https://store.steampowered.com");
+
+                        var allCookies = new List<CoreWebView2Cookie>();
+                        allCookies.AddRange(steamCookies);
+                        allCookies.AddRange(storeCookies);
+
+                        // Deduplicate
+                        var seen = new HashSet<string>();
+                        var uniqueCookies = new List<CoreWebView2Cookie>();
+                        foreach (var c in allCookies)
+                        {
+                            string key = $"{c.Domain}|{c.Path}|{c.Name}";
+                            if (seen.Add(key))
+                                uniqueCookies.Add(c);
+                        }
+
+                        var sb = new StringBuilder();
+                        sb.AppendLine("# Netscape HTTP Cookie File");
+                        sb.AppendLine("# Auto-refreshed via Smart WebView2 Memory");
+                        sb.AppendLine();
+
+                        foreach (var cookie in uniqueCookies)
+                        {
+                            string domain = cookie.Domain;
+                            string flag = domain.StartsWith(".") ? "TRUE" : "FALSE";
+                            string path = cookie.Path;
+                            string secure = cookie.IsSecure ? "TRUE" : "FALSE";
+
+                            long expires = 0;
+                            if (cookie.Expires != DateTime.MinValue && cookie.Expires > DateTime.UnixEpoch)
+                                expires = new DateTimeOffset(cookie.Expires).ToUnixTimeSeconds();
+
+                            sb.AppendLine($"{domain}\t{flag}\t{path}\t{secure}\t{expires}\t{cookie.Name}\t{cookie.Value}");
+                        }
+
+                        // Write string strictly without BOM marker
+                        File.WriteAllText(_cookiePath, sb.ToString(), new UTF8Encoding(false));
+                        File.SetLastWriteTime(_cookiePath, DateTime.Now);
+                        
+                        Log("Keep-Alive: WebView2 hardware token refresh successful.");
+                    }
+                    catch (Exception cookieEx)
+                    {
+                        Log($"Keep-Alive: Extract Failed - {cookieEx.Message}");
+                    }
+                    finally
+                    {
+                        // Clean up RAM aggressively
+                        this.Content = null;
+                        _webView.Dispose();
+                        _webView = null;
+                        _isNavigating = false;
+                    }
                 };
 
-                using var client = new HttpClient(handler);
-                client.DefaultRequestHeaders.Add("User-Agent", UserAgent);
-                client.Timeout = TimeSpan.FromSeconds(20);
-
-                bool anyRefreshed = false;
-
-                foreach (var endpoint in RefreshEndpoints)
-                {
-                    try
-                    {
-                        var response = await client.GetAsync(endpoint);
-                        if (response.IsSuccessStatusCode)
-                        {
-                            anyRefreshed = true;
-                        }
-                    }
-                    catch
-                    {
-                        // Individual endpoint failure is non-fatal
-                    }
-                }
-
-                if (anyRefreshed)
-                {
-                    // Write refreshed cookies back to Netscape format
-                    SaveNetscapeCookies(cookieContainer);
-                    // Touch the file so CookieValidationService sees a fresh timestamp
-                    File.SetLastWriteTime(_cookiePath, DateTime.Now);
-                    Log("Keep-Alive: Session refreshed successfully.");
-                }
-                else
-                {
-                    Log("Keep-Alive: No endpoints responded. Cookies may have expired — re-login required.");
-                }
+                _webView.CoreWebView2.NavigationCompleted += completedHandler;
+                _webView.CoreWebView2.Navigate("https://steamcommunity.com/");
             }
             catch (Exception ex)
             {
-                Log($"Keep-Alive: Error — {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Parse a Netscape-format cookies.txt into a CookieContainer.
-        /// </summary>
-        private void LoadNetscapeCookies(CookieContainer container)
-        {
-            foreach (var line in File.ReadAllLines(_cookiePath))
-            {
-                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
-                    continue;
-
-                var parts = line.Split('\t');
-                if (parts.Length < 7) continue;
-
-                try
+                Log($"Keep-Alive: Critical Error — {ex.Message}");
+                if (_webView != null)
                 {
-                    string domain = parts[0].TrimStart('.');
-                    string path = parts[2];
-                    bool secure = parts[3].Equals("TRUE", StringComparison.OrdinalIgnoreCase);
-                    string name = parts[5];
-                    string value = parts[6];
-
-                    var cookie = new Cookie(name, value, path, domain)
-                    {
-                        Secure = secure,
-                        HttpOnly = true
-                    };
-                    container.Add(cookie);
+                    this.Content = null;
+                    _webView.Dispose();
+                    _webView = null;
                 }
-                catch
-                {
-                    // Skip malformed lines
-                }
-            }
-        }
-
-        /// <summary>
-        /// Write a CookieContainer back to Netscape cookies.txt format,
-        /// preserving only steamcommunity.com cookies.
-        /// </summary>
-        private void SaveNetscapeCookies(CookieContainer container)
-        {
-            // Python's MozillaCookieJar fails if there is a UTF-8 BOM, so we must write without BOM.
-            using var writer = new StreamWriter(_cookiePath, false, new System.Text.UTF8Encoding(false));
-            writer.WriteLine("# Netscape HTTP Cookie File");
-            writer.WriteLine("# Auto-refreshed by Steam Presence Companion");
-            writer.WriteLine();
-
-            var steamCookies = container.GetCookies(new Uri("https://steamcommunity.com"));
-            foreach (Cookie cookie in steamCookies)
-            {
-                string domain = cookie.Domain.StartsWith(".") ? cookie.Domain : "." + cookie.Domain;
-                string flag = domain.StartsWith(".") ? "TRUE" : "FALSE";
-                string secure = cookie.Secure ? "TRUE" : "FALSE";
-                long expires = cookie.Expires == DateTime.MinValue
-                    ? 0
-                    : new DateTimeOffset(cookie.Expires).ToUnixTimeSeconds();
-
-                writer.WriteLine($"{domain}\t{flag}\t{cookie.Path}\t{secure}\t{expires}\t{cookie.Name}\t{cookie.Value}");
-            }
-
-            // Also grab store.steampowered.com cookies if present
-            var storeCookies = container.GetCookies(new Uri("https://store.steampowered.com"));
-            foreach (Cookie cookie in storeCookies)
-            {
-                string domain = cookie.Domain.StartsWith(".") ? cookie.Domain : "." + cookie.Domain;
-                string flag = domain.StartsWith(".") ? "TRUE" : "FALSE";
-                string secure = cookie.Secure ? "TRUE" : "FALSE";
-                long expires = cookie.Expires == DateTime.MinValue
-                    ? 0
-                    : new DateTimeOffset(cookie.Expires).ToUnixTimeSeconds();
-
-                writer.WriteLine($"{domain}\t{flag}\t{cookie.Path}\t{secure}\t{expires}\t{cookie.Name}\t{cookie.Value}");
+                _isNavigating = false;
             }
         }
 
@@ -201,7 +180,13 @@ namespace SteamPresenceUI.Services
         {
             if (_disposed) return;
             _disposed = true;
-            _timer?.Dispose();
+            _timer?.Stop();
+            if (_webView != null)
+            {
+                this.Content = null;
+                _webView.Dispose();
+            }
+            this.Close();
         }
     }
 }
