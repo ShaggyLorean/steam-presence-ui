@@ -55,14 +55,14 @@ namespace SteamPresenceUI.Services
         {
             _timer?.Stop();
             _timer = new DispatcherTimer();
-            _timer.Interval = TimeSpan.FromHours(1);
+            _timer.Interval = TimeSpan.FromHours(8);
             _timer.Tick += async (s, e) => await RefreshAsync();
             _timer.Start();
             
             // Fire first refresh rapidly after startup
             Task.Delay(TimeSpan.FromMinutes(2)).ContinueWith(_ => Dispatcher.InvokeAsync(RefreshAsync));
 
-            Log("Smart WebView2 Keep-Alive armed (interval: 1h).");
+            Log("Smart WebView2 Keep-Alive armed (interval: 8h).");
         }
 
         public void Stop()
