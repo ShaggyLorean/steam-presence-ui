@@ -16,10 +16,15 @@ namespace SteamPresenceUI.Services
         public static PythonRunnerService Shared { get; set; } = null!;
         public bool HasEverStarted { get; private set; } = false;
         public System.Text.StringBuilder LogHistory { get; } = new System.Text.StringBuilder();
-
         public string CurrentGame { get; private set; } = "";
         public bool HasRpcFailed { get; private set; } = false;
         public bool HasSuccessfullyRun { get; private set; } = false;
+
+        public void AppendLog(string message)
+        {
+            LogHistory.AppendLine(message);
+            OutputReceived?.Invoke(this, message);
+        }
 
         public event EventHandler<string>? OutputReceived;
         public event EventHandler<string>? ErrorReceived;
