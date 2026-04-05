@@ -63,6 +63,7 @@ namespace SteamPresenceUI
             
             // Start Cookie Keep-Alive service
             _keepAlive = new SteamPresenceUI.Services.CookieKeepAliveService(basePath);
+            _keepAlive.LogMessage += (s, msg) => SteamPresenceUI.Services.PythonRunnerService.Shared?.Log($"[KeepAlive] {msg}");
             _keepAlive.Start();
 
             InitializeStartupLogic(basePath);

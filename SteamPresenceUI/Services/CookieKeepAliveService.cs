@@ -87,7 +87,10 @@ namespace SteamPresenceUI.Services
                 _webView = new WebView2();
                 this.Content = _webView;
 
-                var env = await CoreWebView2Environment.CreateAsync(userDataFolder: _userDataFolder);
+                var envOptions = new CoreWebView2EnvironmentOptions(
+                    "--disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding"
+                );
+                var env = await CoreWebView2Environment.CreateAsync(userDataFolder: _userDataFolder, options: envOptions);
                 await _webView.EnsureCoreWebView2Async(env);
 
                 EventHandler<CoreWebView2NavigationCompletedEventArgs>? completedHandler = null;
@@ -97,8 +100,8 @@ namespace SteamPresenceUI.Services
                     if (_webView == null) return;
                     _webView.CoreWebView2.NavigationCompleted -= completedHandler;
                     
-                    // Wait enough time for Steam's React logic to negotiate new JWT tokens via localstorage
-                    await Task.Delay(8000);
+                    // Wait 15s to ensure React Chat client connects and forces JWT token renewal
+                    await Task.Delay(15000);
                     
                     try 
                     {
@@ -159,7 +162,7 @@ namespace SteamPresenceUI.Services
                 };
 
                 _webView.CoreWebView2.NavigationCompleted += completedHandler;
-                _webView.CoreWebView2.Navigate("https://steamcommunity.com/");
+                _webView.CoreWebView2.Navigate("https://steamcommunity.com/chat/");
             }
             catch (Exception ex)
             {
